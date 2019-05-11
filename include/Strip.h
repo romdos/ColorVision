@@ -5,6 +5,9 @@
  *
  *
  */
+
+
+
 //----------------------------------------------------------------------------
 //Programmer:    K.I. Kiy                   File      strip.h
 //Last revision  21.06.2005                        Creation  21.06.05
@@ -16,34 +19,42 @@
 #define STRIP_H
 
 
+
+
+
 #include <cstdint>
+
+
+
 
 #include "Segment.h"
 #include "Geometry.h"
 
 
-#define STRIPSNUMBER  48
 
 
 
 #define PRESSING 1
 #define NUM_INTEN 136
 #define NUM_INTEN1 64
-#define NUM_STRIPS 16
+
+#define STRIPSNUMBER  48
+
 #define MAX_INT_NUMBER 32
 #define MAX_COL_INT 96
 #define MAX_COLLESS_INT 64
+
 #define NUM_GRAINS 16
 #define NUM_SECT 64
-#define NUM_SECT1 256
 
+#define NUM_SECT1 256
 #define NUM_HUES 48
 
 
 
+
+
 struct TIntCharact
-//This structure describes the geometry of the distribution
-//of  a particular intensity  in the strip
 {
 public:
 	int MaxSize;
@@ -82,7 +93,6 @@ public:
 
 
 
-
 struct TIntCharactGray
 {
 public:
@@ -95,7 +105,8 @@ public:
 	TIntCharactGray();
 	~TIntCharactGray();
 };
-//------------------------------------------------------
+
+
 
 struct TIntColor //This structure describes the colored intervals of strips
 {
@@ -115,7 +126,9 @@ public:
 	int* TriangleHue;
 	int* TypeOfColor;
 };
-//------------------------------------------------------
+
+
+
 struct TIntColored //This structure describes the  integrated colored intervals of a strip
 {
 public:

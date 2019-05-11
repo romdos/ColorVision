@@ -1,28 +1,49 @@
-// Strip.cpp: implementation of the CStrip class.
-//
-//////////////////////////////////////////////////////////////////////
+/*
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ */
 
-#include "ColorVision.h"
+
+
+
+
 #include "Strip.h"
+
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <algorithm>
-using namespace std;
+
+
+
+
 
 
 #define RED_COEF    0.3  // 0.299
 #define GREEN_COEF  0.59  // 0.587
 #define BLUE_COEF   0.11  // 0.114
+
 #define LOW_INTENSITY 12
 #define LOW_INTENSITY1 33
 #define LOW_INTENSITY2 46
 #define LOW_INTENSITY3 23
 
-CStrip::CStrip(void)
+
+
+
+// todo: rename CStrip to Strip
+CStrip::CStrip()
 {
 	left_bound_of_color_resolution = 21;
 	right_bound_of_color_resolution = 46;
+
 	left_shift1[0] = 1;
 	left_shift1[1] = 1;
 	left_shift1[2] = 2;
@@ -91,22 +112,6 @@ CStrip::CStrip(void)
 	right_shift2[14] = 10;
 	right_shift2[15] = 11;
 
-	/* graygrades[0]=135;
-	 graygrades[1]=134;
-	 graygrades[2]=134;
-	 graygrades[3]=132;
-	 graygrades[4]=132;
-	 graygrades[5]=132;
-	 graygrades[6]=132;
-	 graygrades[7]=130;
-	 graygrades[8]=130;
-	 graygrades[9]=128;
-	 graygrades[10]=128;
-	 graygrades[11]=128;
-	 graygrades[12]=128;
-	 graygrades[13]=126;
-	 graygrades[14]=126;
-	 graygrades[15]=124;*/
 
 	 graygrades[0]=135;
 	   graygrades[1]=135;
@@ -125,22 +130,6 @@ CStrip::CStrip(void)
 	   graygrades[14]=124;
 	   graygrades[15]=124;
 
-	   /*graygrades1[0]=135;
-	   graygrades1[1]=133;
-	   graygrades1[2]=133;
-	   graygrades1[3]=131;
-	   graygrades1[4]=131;
-	   graygrades1[5]=131;
-	   graygrades1[6]=131;
-	   graygrades1[7]=129;
-	   graygrades1[8]=129;
-	   graygrades1[9]=129;
-	   graygrades1[10]=127;
-	   graygrades1[11]=127;
-	   graygrades1[12]=127;
-	   graygrades1[13]=125;
-	   graygrades1[14]=125;
-	   graygrades1[15]=124;*/
 
 	   graygrades1[0]=135;
 	   graygrades1[1]=131;//last_cor03.04.15
@@ -177,9 +166,12 @@ CStrip::CStrip(void)
 	   graygrades2[15]=124;
 	TotalTime=0;
 }
-//=====================================================
 
-CStrip::~CStrip(void) {
+
+
+
+
+CStrip::~CStrip() {
 	delete[] hist_fun;
 	delete[] hist_sum;
 	delete[] num_of_int;
@@ -250,9 +242,9 @@ CStrip::~CStrip(void) {
 	delete[] IntAllInformGray;
 
 }
-//=====================================================
-//This program performs geometric description of intensities in a particular
-//strip
+
+
+
 
 void CStrip::Loc_stat_geom_double(bool NumPair)
 {
@@ -291,8 +283,8 @@ void CStrip::Loc_stat_geom_double(bool NumPair)
 		int actual_strip_number;
 		int point_sat;
 
-//	CColorVisionApp *pApp;
-//	pApp= (CColorVisionApp *)AfxGetApp ();
+//	ColorVision *pApp;
+//	pApp= (ColorVision *)AfxGetApp ();
 	scale_pos=0;
 	res_scale_pos=0;
 
@@ -1949,9 +1941,10 @@ else
 		 		 }
 		   delete[] frequency_of_color_differ;
 		   	}
-//=====================================================
-void
-CStrip::StripCharacteristicsFinding(unsigned char inten,
+
+
+
+void CStrip::StripCharacteristicsFinding(unsigned char inten,
 		 int gray_intensity, int actual_opponent1, int* dif_int_count1, int coor1,
 		 int* hist_su, int* hist_fu, int* first_pi, int* last_pi, int* beg_poin,
 		 int* end_poin, int* thick_firs, int* thick_las, int* thick_stat_inpu,
@@ -2447,9 +2440,9 @@ CStrip::StripCharacteristicsFinding(unsigned char inten,
 	 thick_las[inten]=0;
 	 }*/
  }
-//=====================================================
-//An auxiliary program determining chief intensities, input parameters
-//determine an intensity and its interval
+
+
+
 void CStrip::Strip_value_painting(unsigned char intens, int beg_int,
 		int end_int, int intens_consist, unsigned char* valuable_inten,
 		int* bright_consist) {
@@ -2489,9 +2482,12 @@ void CStrip::Strip_value_painting(unsigned char intens, int beg_int,
 	}
 
 }
-//=====================================================
-//progral selects chief interval for particular intensity, input parameters
+
+
+
+/* progral selects chief interval for particular intensity, input parameters
 //define intensity, its significance and its interval
+ */
 void CStrip::Important_interval(int begin_interval, int end_interval,
 		int min_val, int max_val, float mean_val, int min_opponent1,
 		int max_opponent1, float mean_opponent1, unsigned char intensi,
@@ -2500,14 +2496,6 @@ void CStrip::Important_interval(int begin_interval, int end_interval,
 		int* thick_prev_be, int* thick_prev_en, int* thick_prev_sta,
 		int* thick_break_be, int* thick_break_en, int* thick_break_sta,
 		int num_comp)
-
-/*void
- TStrip::Important_interval(int begin_interval,int end_interval,
- unsigned char intensi,int signi,int* thick_be,int* thick_en,int* num_of_in,
- int* thick_sta,int* hist_fu,int* hist_su,int* thick_stat_inpu,
- int* thick_prev_be,int* thick_prev_en,int* thick_prev_sta,
- int* thick_break_be,int* thick_break_en,int* thick_break_sta,
- int num_comp) */
 {
 	int subtr, prev_length, subtpr;
 	int prev_beg, prev_end;
@@ -2590,7 +2578,9 @@ void CStrip::Important_interval(int begin_interval, int end_interval,
 	}
 	ahead: ;
 }
-//=====================================================
+
+
+
 void CStrip::FinalCorrection(int* thick_las, int* gray_mi, int* gray_ma,
 		float* gray_mea, int *mratio_min, int *mratio_max, float *mratio_mean,
 		int* thick_be, int* thick_en, int* import_be, int* import_en,
@@ -2784,7 +2774,10 @@ void CStrip::FinalCorrection(int* thick_las, int* gray_mi, int* gray_ma,
 		pus: IntAllInform[inu].num_of_int = num_of_in[inu];
 	}
 }
-//=====================================================
+
+
+
+
 void CStrip::OpponentIntensityFinding(int* inten_opp_count, int start1,
 		int bound1, int bound2, unsigned char inten_first, int signif,
 		int coun, int num_opp) {
@@ -2818,8 +2811,7 @@ void CStrip::OpponentIntensityFinding(int* inten_opp_count, int start1,
 	int sum_zero2;
 	int remaining;
 	int new_signif;
-	/* int color_lead;
-	 int color_second; */
+
 	int first_second_ratio;
 	int zero_fraction;
 	int zero_fraction1;
@@ -2858,13 +2850,7 @@ void CStrip::OpponentIntensityFinding(int* inten_opp_count, int start1,
 	float center;
 
 	remaining = signif / 16;
-	/* color_lead=-100;
-	 color_second=-100;*/
 
-	/*if((num_opp==0)||((int)inten_first<59))
-	 {
-	 return;
-	 }*/
 	optimal_inten_value = 0;
 	optimal_inten = -1;
 	nonneg_optimal_inten = -1;
@@ -3040,31 +3026,6 @@ void CStrip::OpponentIntensityFinding(int* inten_opp_count, int start1,
 				abs_optimal_inten = optimal_inten1;
 				abs_optimum_fraction = optimum_fraction1;
 			}
-
-			/*	if(abs_optimal_inten==0)
-			 {
-			 if((!positive_fraction)&&(!first_second_ratio))
-			 {
-			 color_lead=0;
-			 goto M;
-			 }
-			 if((!positive_fraction2)&&(!positive_fraction1))
-			 {
-			 color_lead=1;
-			 goto M;
-			 }
-			 else
-			 {
-			 color_lead=2;
-			 goto M;
-			 }
-			 }
-			 else
-			 {
-			 color_lead=3;
-			 }
-			 L:
-			 ; */
 			if (previous_maximum > -1) {
 				left_outlet = previous_maximum;
 			} else {
@@ -3123,10 +3084,14 @@ void CStrip::OpponentIntensityFinding(int* inten_opp_count, int start1,
 		if (coun == 0) {
 			IntAllInform[inten_first].MainOpponentRatiosBalance[num_int] = -1;
 		}
-
 	}
 }
-//=====================================================
+
+
+
+/*
+ *
+ */
 void CStrip::StripCharacteristicsFindingGray(unsigned char inten, int coor1,
 		int* first_pi, int* last_pi, int* last_en) {
 	int ncoor1;
@@ -3206,7 +3171,9 @@ void CStrip::StripCharacteristicsFindingGray(unsigned char inten, int coor1,
 		thick_lastg[inten] = 0;
 	}
 }
-//=====================================================
+
+
+
 void CStrip::FinalCorrectionGray(int* last_en)
 
 {
@@ -3351,7 +3318,10 @@ void CStrip::FinalCorrectionGray(int* last_en)
 		pus: IntAllInformGray[inu].num_of_int = num_of_intg[inu];
 	}
 }
-//---------------------------------------------------------------------------
+
+
+
+
 void CStrip::Strip_value_painting1(unsigned char intens, int beg_int,
 		int end_int, int intens_consist) {
 	int paint_coun;
@@ -3390,7 +3360,11 @@ void CStrip::Strip_value_painting1(unsigned char intens, int beg_int,
 
 }
 
-//----------------------------------------------------------------
+
+
+/*
+ *
+ */
 void CStrip::Important_interval1(int begin_interval, int end_interval,
 		unsigned char intensi, int signi) {
 	int subtr, prev_length, subtpr;

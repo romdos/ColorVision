@@ -40,23 +40,20 @@ MarkingDetector::~MarkingDetector()
 
 
 
-
 /*
  *  @Description:
- *       Detects all marking lines in a picture based on found candidate bunches (bursts).
+ *       Finds all marking lines in a picture based on found candidate bunches (bursts)
+ *       and pushes them to the list <markings>.
  *  @Parameters:
- *      @In:      markings -- list where detected markings will be stored,
- *                low_sky_boundary -- lower boundary of the sky
- *      @Out:
- *  @Return value:
- *      number of found road marking lines in the picture.
+ *      @In:    low_sky_boundary -- lower boundary of the sky,
+ *      @Out:   markings -- list where detected markings will be stored,
  */
-void MarkingDetector::detect(std::vector<Marking>& markings,
-                             std::uint8_t low_sky_boundary)
+void MarkingDetector::find(std::vector<Marking>& markings,
+                           std::uint8_t low_sky_boundary)
 {
     if (low_sky_boundary < STRIPSNUMBER)
     {
-        for (size_t origin_strip = 0; origin_strip < low_sky_boundary; origin_strip++)
+        for (size_t origin_strip = 0; origin_strip < low_sky_boundary; ++origin_strip)
         {
             for (auto& seed: strips[origin_strip].bursts)
             {
@@ -72,7 +69,7 @@ void MarkingDetector::detect(std::vector<Marking>& markings,
                 while (bunch_is_found)
                 {
                     ++strip_number;
-                    if (strip_number == STRIPSNUMBER)
+                    if (strip_number >= low_sky_boundary)
                         break;
 
                     for (auto& candidate: strips[strip_number].bursts)
@@ -100,7 +97,7 @@ void MarkingDetector::detect(std::vector<Marking>& markings,
                     }
                 }
 
-                if (marking.bunches.size() > 2)
+                if (marking.bunches.size() > 3)
                     markings.push_back(marking);
             }
         }

@@ -1,16 +1,32 @@
-// ColorIntervalSelect.cpp: implementation of the CColorIntervalSelect class.
-//
-//////////////////////////////////////////////////////////////////////
+/*
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ */
 
-#include "ColorVision.h"
+
+
+
+
 #include "ColorIntervalSelect.h"
 #include "Strip.h"
+
+
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <math.h>
 
 #include <algorithm>
+
+
+
+
 using namespace std;
 
 #ifdef _DEBUG
@@ -100,21 +116,13 @@ CColorIntervalSelect::CColorIntervalSelect()
 		right_continuation = NULL;
 		left_adjacent = NULL;
 		right_adjacent = NULL;
-		//label_segments = NULL;
-		//center_bunch_suitability = NULL;
-	/*dev_mean[0]=5;
-	 dev_mean[1]=8;
-	 dev_mean[2]=8;
-	 dev_mean[3]=10;
-	 dev_mean[4]=10;
-	 dev_mean[5]=10;
-	 dev_mean[6]=12;
-	 dev_mean[7]=8;*/
 }
+
+
+
 
 CColorIntervalSelect::~CColorIntervalSelect()
 {
-	//delete[] ColorInform;
 	if (intensities_with_colored_int != NULL)
 		{
 			delete[] intensities_with_colored_int;
@@ -170,21 +178,12 @@ CColorIntervalSelect::~CColorIntervalSelect()
 			delete[] consistency_colored_long;
 			consistency_colored_long = NULL;
 		}
-	/*if(NumberOfColoredIntervals>0)
-	 {
-	 delete[] bunch_blocking;
-	 delete[] bunches_occurred;
-	 delete[] new_bunch_number;
-	 delete[] old_bunch_number;
-	 delete[] bunch_connections;
-	 delete[] visible_bunches;
-	 }*/
 
 }
-//-----------------------------------------------------------------------------
-void
 
-CColorIntervalSelect::FindingStructureParametrs(int* num_of_int,
+
+
+void CColorIntervalSelect::FindingStructureParametrs(int* num_of_int,
 		int*intens_with_int, int* OldNumb, int* NumInterestingIntensities)
 {
 	int int_cou;
@@ -234,8 +233,13 @@ CColorIntervalSelect::FindingStructureParametrs(int* num_of_int,
 		NumberOfColorlessIntervals = 0;
 		return;
 	}
-	MaximalNumber=MaxNumInt;
+
+	MaximalNumber = MaxNumInt;
+
+
 	ColorInform = new TIntColor[NumInterestIntens];
+
+
 	for (coun_ini = 0; coun_ini < NumInterestIntens; coun_ini++)
 	{
 		ColorInform[coun_ini].num_of_int = MaxNumInt;

@@ -12,7 +12,6 @@ set(SOURCE_FILES
         src/BunchGray.cpp
         src/ColorIntervalSelect.cpp
         src/ColorSection.cpp
-        src/ColorVisionProc.cpp
         src/ImageProcess.cpp
         src/RoadGrSky.cpp
         src/SignalZones.cpp
@@ -22,7 +21,6 @@ set(SOURCE_FILES
         src/MarkingDetector.cpp
         include/ColorIntervalSelect.h
         include/ColorSection.h
-        include/ColorVision.h
         include/ImageProcess.h
         include/Strip.h
         include/Segment.h

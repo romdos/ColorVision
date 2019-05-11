@@ -9,7 +9,6 @@
 
 
 
-#include "ColorVision.h"
 #include "ImageProcess.h"
 
 
@@ -31,7 +30,9 @@ static int imp_dev_mean_sat1[16] =
 static int gray_zones[NUM_INTEN1] = {0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 2,
 		2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 5,
 		5, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7};
-		//0. 0-6, 1. 7-12, 2. 13-21, 3. 22-30, 4. 31-39, 5. 40-49, 6. 50-57, 7. 58-63
+
+
+
 static int dev_mean[8] = {5, 8, 8, 10, 10, 10, 12, 8};
 static int imp_dev_mean[8] = {14, 16, 18, 18, 16, 16, 14, 12};
 
@@ -39,18 +40,27 @@ static int imp_dev_mean[8] = {14, 16, 18, 18, 16, 16, 14, 12};
 
 
 
-CImageProcess::CImageProcess(std::uint8_t* ImageData, long ImageSizex, long ImageSizey,
-        int NumOfStrips, int TotalNumberofFrames)
+CImageProcess::CImageProcess()
 {
-	TotalNumFrame = TotalNumberofFrames;
+    HorizontalVertical = HORIZONTAL;
 
-	CurStrip = NULL;
+    GGBorGGR = 1;
+
+    VideoCameraIsLoaded = 1;
+
+    Feature = 0;
+
+    GreenFinding = 1;
+
+    memset(SkyPixelsOfBoundaryPoints, (int) '\0', sizeof(int) * IMAGE_WIDTH);
+
+
+    CurStrip = NULL;
 	GrayBunches = NULL;//08.02.17
 	ColorInt = NULL;
+
 	IntegratedColorlessBackIntervals = NULL;
 	IntegratedColorBunchesCharacteristics = NULL;
-
-
 
 	MotionAnalysis = NULL;
 	ColorDescrSect = NULL;
@@ -78,7 +88,6 @@ CImageProcess::CImageProcess(std::uint8_t* ImageData, long ImageSizex, long Imag
 	BestVertComponentEnd=NULL;
 	BestVertNumPoints=NULL;
 	GlobalDeviation=NULL;
-	SkyPixelsOfBoundaryPoints=NULL;
 	SkyVisualization=NULL;
 	LeftBunchesInTheSky=NULL;
 	LeftSkyComp=NULL;
@@ -108,17 +117,16 @@ CImageProcess::CImageProcess(std::uint8_t* ImageData, long ImageSizex, long Imag
     VerticalContrastCurves=NULL;//last_cor3.06.18
     VerticalContrastCurvesClosedSignals=NULL;//last_cor3.06.18
 
-	DimX = ImageSizex;
-	DimY = ImageSizey;
+	DimX = IMAGE_WIDTH;
+	DimY = IMAGE_HEIGHT;
 
-	Im = ImageData;
 
 	SkyFinding = true;
 	GreenFinding = true;
 
 	Residual1 = 0;
 	Residual = 0;
-	NumStrips = NumOfStrips;
+	NumStrips = STRIPSNUMBER;
 
 	left_shift1[0] = 3;
 	left_shift1[1] = 3;
@@ -250,23 +258,23 @@ CImageProcess::CImageProcess(std::uint8_t* ImageData, long ImageSizex, long Imag
 
 	NumLevels = NUM_INTEN;
 
-	if(SkyFinding)
+	if (SkyFinding)
 	{
-	    SkyVisualization=new int[DimX];
+	    SkyVisualization = new int[DimX];
 	}
-	if(GreenFinding)
+	if (GreenFinding)
 	{
-	LeftGreenBoundary= new int[DimX];
-	LeftGreenBoundaryBunch= new int[NumStrips];
-	LeftGreenBoundaryVert= new int[NumStrips];
-	LeftGreenBoundarySection= new int[NumStrips];
-	LeftAdjacentNonGreenSectionMax= new int[NumStrips];
-	LeftAdjacentGreenSectionMax= new int[NumStrips];//last_cor09.12.16
-	RightGreenBoundary= new int[DimX];
-	RightGreenBoundaryBunch= new int[NumStrips];
-	RightGreenBoundarySection= new int[NumStrips];
-	RightAdjacentNonGreenSectionMax= new int[NumStrips];
-	RightAdjacentGreenSectionMax= new int[NumStrips];//last_cor12.10.17
+        LeftGreenBoundary = new int[DimX];
+        LeftGreenBoundaryBunch= new int[NumStrips];
+        LeftGreenBoundaryVert= new int[NumStrips];
+        LeftGreenBoundarySection= new int[NumStrips];
+        LeftAdjacentNonGreenSectionMax= new int[NumStrips];
+        LeftAdjacentGreenSectionMax= new int[NumStrips];//last_cor09.12.16
+        RightGreenBoundary= new int[DimX];
+        RightGreenBoundaryBunch= new int[NumStrips];
+        RightGreenBoundarySection= new int[NumStrips];
+        RightAdjacentNonGreenSectionMax= new int[NumStrips];
+        RightAdjacentGreenSectionMax= new int[NumStrips];//last_cor12.10.17
 	}
 	VertFinding=true;
 	if(VertFinding)
@@ -278,6 +286,8 @@ CImageProcess::CImageProcess(std::uint8_t* ImageData, long ImageSizex, long Imag
         StripSignalsAdditional=new int [NumStrips];
         StripNewNumberAdditional=new int [NumStrips];
 	}
+
+	InitialConstructions();
 }
 
 
@@ -287,19 +297,24 @@ CImageProcess::~CImageProcess()
 {
 	delete[] opponent_color_difference;
 	opponent_color_difference = NULL;
+
 	delete[] invert_color_difference1;
 	invert_color_difference1 = NULL;
+
 	delete[] invert_color_difference2;
 	invert_color_difference2 = NULL;
+
 	delete[] CurStrip;
 	delete[] GrayBunches;
+
 	CurStrip = NULL;
 	GrayBunches = NULL;
 
 
-	if ((TotalNumFrame > 1) && (VideoCameraIsLoaded))
+	if (VideoCameraIsLoaded)
 	{
-		if (MotionAnalysis != NULL) {
+		if (MotionAnalysis != NULL)
+		{
 			delete MotionAnalysis;
 			MotionAnalysis = NULL;
 			delete[] IntegratedColorBunchesCharacteristics;
@@ -309,18 +324,22 @@ CImageProcess::~CImageProcess()
 
 	delete[] IntegratedColorIntervals;
 	IntegratedColorIntervals = NULL;
-	//delete[] IntegratedColorlessBackIntervals;
-	//IntegratedColorlessBackIntervals = NULL;
+
 	delete[] ColorInt;
 	ColorInt = NULL;
-	if (ColorDescrSect != NULL) {
-		for (int zero_sec = 0; zero_sec < NUM_SECT1; zero_sec++) {
+
+	if (ColorDescrSect != NULL)
+	{
+		for (int zero_sec = 0; zero_sec < NUM_SECT1; zero_sec++)
+		{
 			delete[] ColorDescrSect[zero_sec].location_of_section;
 		}
 		delete[] ColorDescrSect;
 		ColorDescrSect = NULL;
 	}
-	if (ColorSection != NULL) {
+
+	if (ColorSection != NULL)
+	{
 		delete[] ColorSection;
 		ColorSection = NULL;
 	}
@@ -532,46 +551,57 @@ if(GreenFinding)
 	        		RightGreenBoundaryBunch=NULL;
 	        			}
 
-	        		if(RightGreenBoundarySection!=NULL)
-	        			{
-	        		delete [] RightGreenBoundarySection;
-	        		RightGreenBoundarySection=NULL;
-	        			}
+        if (RightGreenBoundarySection != NULL)
+        {
+            delete [] RightGreenBoundarySection;
+            RightGreenBoundarySection = NULL;
+        }
 
-	        		if(RightAdjacentNonGreenSectionMax!=NULL)
-	        			{
-	        		delete [] RightAdjacentNonGreenSectionMax;
-	        		RightAdjacentNonGreenSectionMax=NULL;
-	        			}
+        if (RightAdjacentNonGreenSectionMax != NULL)
+        {
+            delete[] RightAdjacentNonGreenSectionMax;
+            RightAdjacentNonGreenSectionMax = NULL;
+        }
 
-	        		if(RightAdjacentGreenSectionMax!=NULL)//last_cor09.12.16
-	        				{
-	        			delete [] RightAdjacentGreenSectionMax;
-	        			RightAdjacentGreenSectionMax=NULL;//last_cor09.12.16
-	        				}
+        if (RightAdjacentGreenSectionMax != NULL)//last_cor09.12.16
+        {
+            delete[] RightAdjacentGreenSectionMax;
+            RightAdjacentGreenSectionMax = NULL;//last_cor09.12.16
+        }
 
-}//grf
-
+    }//grf
+    DeleteTemporal();
 }
 
 
 
-
+/*
+ * @Description:
+ *      Deletes dynamically allocated objects in some methods.
+ */
 void CImageProcess::DeleteTemporal()
-{ //proc
+{
 	for (int i = 0; i < NumStrips; i++)
-	{ //i loop
-		if (ColorInt[i].NumInterestingIntensities != 0) {
+	{
+		if (ColorInt[i].NumInterestingIntensities != 0)
+		{
 			delete[] ColorInt[i].ColorInform;
 			ColorInt[i].ColorInform = NULL;
 		}
-		if (ColorInt[i].NumberOfColoredIntervals > 0) { //cond
-			if ((VideoCameraIsLoaded) && (TotalNumFrame > 1)) {
+
+		if (ColorInt[i].NumberOfColoredIntervals > 0)
+		{ //cond
+			if (VideoCameraIsLoaded)
+			{
 				delete[] ColorInt[i].bunches_occurred;
 				ColorInt[i].bunches_occurred = NULL;
+
 				delete[] ColorInt[i].bunch_connections;
 				ColorInt[i].bunch_connections = NULL;
-			} else {
+
+			}
+			else
+            {
 				delete[] ColorInt[i].bunch_blocking;
 				ColorInt[i].bunch_blocking = NULL;
 				delete[] ColorInt[i].left_continuation;
@@ -611,42 +641,44 @@ void CImageProcess::DeleteTemporal()
 		} //cond
 
 	} //i loop
-	if(SkyFinding)
+
+	if (SkyFinding)
 	{
-		if(LeftSkyComp!=NULL)
+		if(LeftSkyComp != NULL)
 		{
-		delete [] LeftSkyComp;
-		LeftSkyComp=NULL;
+            delete [] LeftSkyComp;
+            LeftSkyComp = NULL;
 		}
-		                       if(RightSkyComp!=NULL)
-			        			{
-			        	       delete [] RightSkyComp;
-			        	       RightSkyComp=NULL;
-			        			}
-if(LeftBunchesInTheSky!=NULL)
-{
-delete [] LeftBunchesInTheSky;
-LeftBunchesInTheSky=NULL;
-}
-                  if(RightBunchesInTheSky!=NULL)
-	        		{
-	        	delete [] RightBunchesInTheSky;
-	        	RightBunchesInTheSky=NULL;
-	        		}
+        if (RightSkyComp != NULL)
+        {
+            delete [] RightSkyComp;
+            RightSkyComp = NULL;
+        }
+        if (LeftBunchesInTheSky != NULL)
+        {
+            delete [] LeftBunchesInTheSky;
+            LeftBunchesInTheSky = NULL;
+        }
+        if (RightBunchesInTheSky != NULL)
+        {
+            delete [] RightBunchesInTheSky;
+            RightBunchesInTheSky = NULL;
+        }
 	}
-	if(GreenFinding)
+
+	if (GreenFinding)
 	{
-	 if(LeftRightSectionNumberOfRightGreenBoundaryPoints!=NULL)
-		        			{
-		        		delete [] LeftRightSectionNumberOfRightGreenBoundaryPoints;
-		        		LeftRightSectionNumberOfRightGreenBoundaryPoints=NULL;
-		        			}
+        if (LeftRightSectionNumberOfRightGreenBoundaryPoints != NULL)
+        {
+            delete[] LeftRightSectionNumberOfRightGreenBoundaryPoints;
+            LeftRightSectionNumberOfRightGreenBoundaryPoints = NULL;
+        }
 	}
 } //proc
 
 
 
-
+// todo: remove this function to constructor
 void CImageProcess::InitialConstructions()
 {
 
@@ -656,18 +688,18 @@ void CImageProcess::InitialConstructions()
 	int sec;
 	int count_frames;
 	StripWidth1 = 0;
-	if ((TotalNumFrame > 1) && (VideoCameraIsLoaded)) {
+
+	if (VideoCameraIsLoaded)
+	{
 		MotionAnalysis = new CMotion;
 		MotionAnalysis->NumberofFrames = 2;
-		//MotionAnalysis->NumberofFramesforMotionAnalysis=4;
 		LengthofMotionAnalysisInterval = MotionAnalysis->NumberofFrames;
-		//number_of_motion_analysis_intervals=MotionAnalysis->NumberofFramesforMotionAnalysis;
 	}
 
 	CurStrip = new CStrip[NumStrips];
 	GrayBunches = new CBunchGray[NumStrips];
 
-	if ((VideoCameraIsLoaded) && (TotalNumFrame > 1)) {
+	if (VideoCameraIsLoaded) {
 		IntegratedColorIntervals =
 				new TIntColored[LengthofMotionAnalysisInterval * NumStrips];
 		IntegratedColorBunchesCharacteristics =
@@ -735,7 +767,6 @@ void CImageProcess::InitialConstructions()
 		CurStrip[i].NumbStr = NumStrips;
 		CurStrip[i].BitPerP = BitsPerPix;
 		CurStrip[i].Feature=Feature;
-		//CurStrip[i].Graygrades[16]=graygrades[16];
 		CurStrip[i].num_strip = i;
 		if (i < NumStrips - 1) {
 			CurStrip[i].StripWidth = StripWidth;
@@ -760,7 +791,6 @@ void CImageProcess::InitialConstructions()
 		CurStrip[i].DimDifference = DimDifference;
 		CurStrip[i].DimDifference1 = DimDifference / 2;
 		CurStrip[i].DimDifference2 = DimDifference / 4;
-		//CurStrip[i].AffineProj=ColorRatio;
 		CurStrip[i].correct_int = correct_intence;
 		CurStrip[i].PressedLength = PressedLength;
 		CurStrip[i].StripLength = StripLength;
@@ -841,10 +871,7 @@ void CImageProcess::InitialConstructions()
 		CurStrip[i].opponent_color_difference = opponent_color_difference;
 		CurStrip[i].invert_color_difference1 = invert_color_difference1;
 		CurStrip[i].invert_color_difference2 = invert_color_difference2;
-		/*CurStrip[i].left_shift1=left_shift1;
-		 CurStrip[i].left_shift2=left_shift2;
-		 CurStrip[i].right_shift1=right_shift1;
-		 CurStrip[i].right_shift2=right_shift2;*/
+
 		GrayBunches[i].StripCur = &CurStrip[i];
 		GrayBunches[i].HorizontalVertical = HorizontalVertical;
 		GrayBunches[i].DimX = DimX;
@@ -856,9 +883,6 @@ void CImageProcess::InitialConstructions()
 
 		ColorInt[i].ColoredIntervalsStructure = &IntegratedColorIntervals[i];
 		ColorInt[i].VideoCameraIsLoaded = VideoCameraIsLoaded;
-		ColorInt[i].TotalNumFrame = TotalNumFrame;
-		//ColorInt[i].ColorLessIntervalsStructure
-		//= &IntegratedColorlessBackIntervals[i];
 		ColorInt[i].StripCurrent = &CurStrip[i];
 		ColorInt[i].PressedLength = PressedLength;
 		ColorInt[i].StripLength = StripLength;
@@ -874,10 +898,9 @@ void CImageProcess::InitialConstructions()
 		ColorInt[i].intensities_with_colored_int = new int[NUM_INTEN];
 
 		ColorInt[i].OldNumbers = new int[NUM_INTEN];
-		if ((VideoCameraIsLoaded) && (TotalNumFrame > 1)) {
-			for (count_frames = 0;
-					count_frames < LengthofMotionAnalysisInterval;
-					count_frames++) {
+		if (VideoCameraIsLoaded)
+		{
+			for (count_frames = 0; count_frames < LengthofMotionAnalysisInterval; count_frames++) {
 				memset(
 						IntegratedColorBunchesCharacteristics[i
 								+ NumStrips * count_frames].shift_of_the_position,
@@ -891,10 +914,7 @@ void CImageProcess::InitialConstructions()
 								+ NumStrips * count_frames].right_length_of_trajectory,
 						(int) '\0', sizeof(int) * (MAX_COL_INT));
 			}
-			ColorInt[i].CurrentFrameNumber = NumberOfCurrentFrame;
-
 		}
-
 	}
 
 	ColorSection->section_fibre_first = new int[NUM_SECT1];
@@ -957,80 +977,38 @@ void CImageProcess::InitialConstructions()
 
 
 
-
-void CImageProcess::SegmentImage(MarkingDetector* marking_detector, std::vector<Marking>& markings,
-        int CurrentFrameNumber)
+/*
+ * @Description:
+ *      Prepares all basic constructions (histograms, bunches etc.)
+ *
+ * @Parameters:
+ *      @In:    frame -- image to be segmented,
+ *              frame_count -- its number.
+ * @Notes:
+ */
+void CImageProcess::segment(cv::Mat& frame,
+                            size_t frame_count)
 {
-	int right_connected_proc;
-	int line_testing;
-	int connections_found;
-	int sky_hist[64];
-	int sect_weight[64];
-	int sky_hist_right[64];
-	int sect_weight_right[64];
-	int last_intensity_value;
-	int last_intensity_value_right;
-	int sky_saturated_left;
-	int sky_saturated_right;
-	int left_right_connection;
-	int covering_number;
-	int bound_result;
-	int green_success_left;
-	int green_success_right;
-	int strip_disordering;
-	int number_ordered;
-	int last_left_sec;
-	int trans_success;
-	int success_find;//last_cor20.10.18
-	int vertical_success;
-	int connected_vert;
-	int intersec_vert;
-	int breaking_vert;
-	int vert_signal_connected;
-	int vert_line_bound_index;
-
-	NumberOfCurrentFrame = CurrentFrameNumber;
-	vert_line_bound_index=-1;//last_cor05.11.17
-	vert_signal_connected=-1;//last_cor24.10.17
-	breaking_vert=-1;//last_cor20.10.18
-	intersec_vert;
-	connected_vert=-1;
-	success_find=-1;
-	vertical_success=-1;
-	trans_success=-1;
-	last_left_sec=-1;
-	bound_result=-1;
-	sky_saturated_left=-1;//last_cor29.06.15
-	sky_saturated_right=-1;
-
-
 	RedNumberOfCurrentFrame = 0;
-	number_of_section_left=0;
-	number_of_section_right=0;
-	number_of_sections=0;
-	right_connected_proc=-1;
-	line_testing=-1;
-	connections_found=-1;
-	last_intensity_value=-1;
-	last_intensity_value_right=-1;
-	//LabelPresence=0;
-	MassiveGray=-1;//last_cor01.06.15
-	MassiveGrayLow=-1;
-	MassiveGrayTop=-1;
-	MassiveGrayTopSection=-1;
-	TotalUpWeight=0;
-	if (LengthofMotionAnalysisInterval != 0) {
-		RedNumberOfCurrentFrame = NumberOfCurrentFrame
-				% LengthofMotionAnalysisInterval;
-	}
 
+	MassiveGray = -1;//last_cor01.06.15
+	MassiveGrayLow = -1;
+	MassiveGrayTop = -1;
+	MassiveGrayTopSection = -1;
+
+	TotalUpWeight = 0;
+
+	if (LengthofMotionAnalysisInterval != 0)
+	{
+		RedNumberOfCurrentFrame = frame_count % LengthofMotionAnalysisInterval;
+	}
 
 	MaximumNumberOfCoveringElements = 0;
 
-
-	for (int i = 0; i < NumStrips; i++)
+	for (size_t i = 0; i < NumStrips; i++)
 	{
-		CurStrip[i].intensi = Im;
+		CurStrip[i].intensi = frame.data;
+        // todo: avoid memset().
 		memset(CurStrip[i].valuable_intensity, (char) '\0', PressedLength);
 		memset(CurStrip[i].quantity_of_intensities, (int) '\0', sizeof(int) * (PressedLength));
 		memset(CurStrip[i].bright_consistency, (int) '\0',
@@ -1062,25 +1040,19 @@ void CImageProcess::SegmentImage(MarkingDetector* marking_detector, std::vector<
 		memset(CurStrip[i].thick_begg, (int) '\0', sizeof(int) * NUM_INTEN1);
 		memset(CurStrip[i].thick_endg, (int) '\0', sizeof(int) * NUM_INTEN1);
 		memset(CurStrip[i].thick_break_endg, (int) '\0', sizeof(int) * NUM_INTEN1);
-		memset(CurStrip[i].thick_prev_endg, (int) '\0',
-				sizeof(int) * NUM_INTEN1);
+		memset(CurStrip[i].thick_prev_endg, (int) '\0', sizeof(int) * NUM_INTEN1);
 		memset(CurStrip[i].thick_lastg, (int) '\0', sizeof(int) * NUM_INTEN1);
 		memset(CurStrip[i].num_of_intg, (int) '\0', sizeof(int) * NUM_INTEN1);
-		memset(ColorInt[i].painted_strip_saturation, (int) '\0',
-				sizeof(int) * (3 * PressedLength));
-		memset(ColorInt[i].painted_strip_colored, (int) '\0',
-				sizeof(int) * (PressedLength));
-
+		memset(ColorInt[i].painted_strip_saturation, (int) '\0', sizeof(int) * (3 * PressedLength));
+		memset(ColorInt[i].painted_strip_colored, (int) '\0', sizeof(int) * (PressedLength));
 		memset(ColorInt[i].painted_strip_colored_long, (int) '\0', sizeof(int) * (StripLength));
 
 
 		CurStrip[i].Loc_stat_geom_double(GGBorGGR);
 
-        GrayBunches[i].find_bursts(5*StripWidth, 5);
+        GrayBunches[i].find_bursts(2 * StripWidth, 5);
 
-
-		if ((VideoCameraIsLoaded) && (TotalNumFrame > 1)
-				&& (LengthofMotionAnalysisInterval))
+		if (VideoCameraIsLoaded)
 		{
 			ColorInt[i].ColoredIntervalsStructure = &IntegratedColorIntervals[i
 					+ RedNumberOfCurrentFrame * NumStrips];
@@ -1088,21 +1060,19 @@ void CImageProcess::SegmentImage(MarkingDetector* marking_detector, std::vector<
 					&IntegratedColorBunchesCharacteristics[i
 							+ RedNumberOfCurrentFrame * NumStrips];
 
-			if (NumberOfCurrentFrame > 1) {
-				memset(
-						IntegratedColorBunchesCharacteristics[i
+			if (frame_count > 1)
+			{
+				memset(IntegratedColorBunchesCharacteristics[i
 								+ NumStrips * RedNumberOfCurrentFrame].length_of_trajectory,
 						(int) '\0', sizeof(int) * (MAX_COL_INT));
-				memset(
-						IntegratedColorBunchesCharacteristics[i
+				memset(IntegratedColorBunchesCharacteristics[i
 								+ NumStrips * RedNumberOfCurrentFrame].right_length_of_trajectory,
 						(int) '\0', sizeof(int) * (MAX_COL_INT));
 			}
 		}
 		else
         {
-			ColorInt[i].ColoredIntervalsStructure =
-					&IntegratedColorIntervals[i];
+			ColorInt[i].ColoredIntervalsStructure = &IntegratedColorIntervals[i];
 		}
 
 		ColorInt[i].StripCurrent = &CurStrip[i];
@@ -1112,59 +1082,56 @@ void CImageProcess::SegmentImage(MarkingDetector* marking_detector, std::vector<
 				ColorInt[i].intensities_with_colored_int,
 				ColorInt[i].OldNumbers, &ColorInt[i].NumInterestingIntensities);
 
-		covering_number = ColorInt[i].NumberOfIntervalsInCovering;
+		int covering_number = ColorInt[i].NumberOfIntervalsInCovering;
 
-		if(covering_number > MaximumNumberOfCoveringElements)
+		if (covering_number > MaximumNumberOfCoveringElements)
         {
             MaximumNumberOfCoveringElements = covering_number;
         }
 
-		if ((VideoCameraIsLoaded) && (TotalNumFrame > 1)
-				&& (LengthofMotionAnalysisInterval)) {
-			IntegratedColorBunchesCharacteristics[i
-					+ NumStrips * RedNumberOfCurrentFrame].num_of_bunches =
-					ColorInt[i].NumberOfColoredIntervals;
-			IntegratedColorBunchesCharacteristics[i
-					+ NumStrips * RedNumberOfCurrentFrame].num_of_refined_bunches =
-					ColorInt[i].RefinedNumberOfBunches;
-			IntegratedColorBunchesCharacteristics[i
-					+ NumStrips * RedNumberOfCurrentFrame].Max_number =
-					ColorInt[i].MaximalNumber;
-			IntegratedColorBunchesCharacteristics[i
-					+ NumStrips * RedNumberOfCurrentFrame].num_of_contrast_intervals =
-					0;
-			//these characteristics should be refined in further investigations
-			if (NumberOfCurrentFrame >= 1) {
-				RedNumberOfPreviousFrame = (NumberOfCurrentFrame - 1)
-						% LengthofMotionAnalysisInterval;
-				ContrastBunchesMotion(i, ColorInt[i].bunches_occurred);
-			}
-		}
+        IntegratedColorBunchesCharacteristics[i + NumStrips * RedNumberOfCurrentFrame].num_of_bunches =
+                ColorInt[i].NumberOfColoredIntervals;
 
+		IntegratedColorBunchesCharacteristics[i + NumStrips * RedNumberOfCurrentFrame].num_of_refined_bunches =
+                ColorInt[i].RefinedNumberOfBunches;
+
+		IntegratedColorBunchesCharacteristics[i + NumStrips * RedNumberOfCurrentFrame].Max_number = ColorInt[i].MaximalNumber;
+
+		IntegratedColorBunchesCharacteristics[i + NumStrips * RedNumberOfCurrentFrame].num_of_contrast_intervals = 0;
+        //these characteristics should be refined in further investigations
+
+        if (frame_count >= 1)
+        {
+            RedNumberOfPreviousFrame = (frame_count - 1) % LengthofMotionAnalysisInterval;
+            ContrastBunchesMotion(i, ColorInt[i].bunches_occurred);
+        }
 	}
-
 
 	maximum_number_of_ordered_bunches = 0;
 
-	for (int count_bunch_ord = 0;count_bunch_ord < NumStrips;count_bunch_ord++)
+    int number_ordered;
+
+    for (int count_bunch_ord = 0; count_bunch_ord < NumStrips; count_bunch_ord++)
 	{
-	    strip_disordering = ColorInt[count_bunch_ord].Disordering;
+	    int strip_disordering = ColorInt[count_bunch_ord].Disordering;
 
 	    if (0 == strip_disordering)
-            number_ordered=ColorInt[count_bunch_ord].NumberOfIntervalsInCovering;
-
-        if(number_ordered > maximum_number_of_ordered_bunches)
         {
-            maximum_number_of_ordered_bunches=number_ordered;
+            number_ordered = ColorInt[count_bunch_ord].NumberOfIntervalsInCovering;
+        }
+
+        if (number_ordered > maximum_number_of_ordered_bunches)
+        {
+            maximum_number_of_ordered_bunches = number_ordered;
         }
 	}
 
 	ColorSection->SectionTracking(0, SectionTraceLeft);
 	ColorSection->SectionTracking(1, SectionTraceRight);
 
+    number_of_sections = ColorSection->Number_of_sections;
     number_of_section_left = ColorSection->Number_of_sections_left;
     number_of_section_right = ColorSection->Number_of_sections_right;
-    number_of_sections = ColorSection->Number_of_sections;
 
     if ((number_of_section_left > 0) && (number_of_section_right > 0))
     {
@@ -1186,9 +1153,9 @@ void CImageProcess::SegmentImage(MarkingDetector* marking_detector, std::vector<
         memset(BestVertComponentBeg,(int) '\0',sizeof(int)*NUM_SECT1);
         memset(BestVertComponentEnd,(int) '\0',sizeof(int)*NUM_SECT1);
 
-	    right_connected_proc = FindingRightConectedSection();
-	    line_testing = StraightLineHighObjectsTesting();
-	    connections_found = ConnectedSections(SectionNeighborsLeftRight);
+	    int right_connected_proc = FindingRightConectedSection();
+	    int line_testing = StraightLineHighObjectsTesting();
+	    int connections_found = ConnectedSections(SectionNeighborsLeftRight);
 
 	    if (MaximumNumberOfCoveringElements > 0)
 		{
@@ -1197,223 +1164,251 @@ void CImageProcess::SegmentImage(MarkingDetector* marking_detector, std::vector<
 		}
     }
 
-    if (SkyFinding)
-    {//skf
-        SkyLeftHueZone = -1;
-        SkyRightHueZone = -1;
+    detect_sky();
+    detect_green();
 
-        LowerSkyFiber = NumStrips+1;
-        UpperSkyFiber = -1;
-
-        if (!HorizontalVertical)
-        {//horvert
-            memset(SkyVisualization,(int) '\0',sizeof(int)*DimX);
-            memset(SkyBoundaries,(int) '\0',sizeof(int)*1920);
-            memset(SkyComponents,(int) '\0',sizeof(int)*32);
-            memset(SkyGreenComponents,(int) '\0',sizeof(int)*NUM_SECT1);
-		    memset(sky_hist,(int) '\0',sizeof(int)*64);
-
-		    SkyIntencitiesDistributionFinding(sky_hist, sect_weight, 0);
-
-            SkyMainLeft = -1;
-            SkySaturatedLeft = -1;
-
-            NumberLeftSkyComp = 0;
-            NumberRightSkyComp = 0;
-
-            SkyMainLeft = MaximumSky(sky_hist,sect_weight,&last_intensity_value,&sky_saturated_left);
-
-            SkySaturatedLeft = sky_saturated_left;
-
-		    if (SkyMainLeft >= 0)
-		    {
-		        NumberLeftSkyComp++;
-			    SkyGreenComponents[SkyMainLeft] = 1;
-                int sky_main_left_hue = ColorSection->section_mean_hue[SkyMainLeft];//last_cor15.06.15
-                SkyLeftHueZone = hue_zones[sky_main_left_hue];
-		    }
-
-            memset(sky_hist_right,(int) '\0',sizeof(int)*64);
-
-		    SkyIntencitiesDistributionFinding(sky_hist_right,sect_weight_right,1);
-
-            SkyMainRight = -1;
-            SkySaturatedRight =-1;
-
-            SkyMainRight = MaximumSky(sky_hist_right,sect_weight_right,&last_intensity_value_right,
-                    &sky_saturated_right);
-
-            SkySaturatedRight = sky_saturated_right;
-
-            if (SkyMainRight >= 0)
-            {//skmr
-                SkyGreenComponents[SkyMainRight] = 1;
-                NumberRightSkyComp++;
-                int sky_main_right_hue = ColorSection->section_mean_hue[SkyMainRight];//last_cor15.06.15
-                SkyRightHueZone = hue_zones[sky_main_right_hue];
-            }//skmr
-
-            if (SkyMainLeft >= 0)
-            {//skml
-                if (number_of_section_left > 0)
-                {
-                    LeftSkyComp = new int[number_of_section_left];
-                    BelongsSkyTo(sky_hist,0,number_of_section_left);
-                }
-            }//skml
-
-            if (SkyMainRight >= 0)
-            {
-                if (number_of_section_right > 0)
-                {
-                    if (!RightSkyComp)
-                    {
-                        RightSkyComp = new int[number_of_section_right];
-                    }
-                    BelongsSkyTo(sky_hist_right,number_of_section_left,number_of_sections);
-                }
-            }
-        }//horvert
-        else
-        {
-            memset(sky_hist,(int) '\0',sizeof(int)*64);
-        }
-
-        if ((SkyMainLeft >= 0) && (SkyMainRight >= 0))
-        {
-            left_right_connection = SectionNeighborsLeftRight[SkyMainLeft*(NUM_SECT1/2)+SkyMainRight-number_of_section_left];
-        }
-
-        NumberOfSkyBoundaryPoints = 0;
-
-        if ((NumberLeftSkyComp > 0) || (NumberRightSkyComp > 0))
-        {
-            if (MaximumNumberOfCoveringElements > 0)
-            {
-	            if (NumberLeftSkyComp > 0)
-	            {
-                    LeftBunchesInTheSky= new int [MaximumNumberOfCoveringElements*NumStrips];
-                    memset(LeftBunchesInTheSky,(int) '\0',sizeof(int)*(MaximumNumberOfCoveringElements*NumStrips));
-                }
-
-	            if (NumberRightSkyComp > 0)
-	            {
-                    RightBunchesInTheSky= new int [MaximumNumberOfCoveringElements*NumStrips];
-                    memset(RightBunchesInTheSky,(int) '\0',sizeof(int)*(MaximumNumberOfCoveringElements*NumStrips));
-	            }
-
-	            if ((NumberLeftSkyComp)||(NumberRightSkyComp))
-	            {
-	                LeftRightSkyAddition();
-
-                    if (NumberRightSkyComp > 0)
-                    {
-                        LabelingSkyBunches(RightBunchesInTheSky,RightSkyComp,NumberRightSkyComp);
-                    }
-
-                    if(NumberLeftSkyComp > 0)
-                    {
-                        LabelingSkyBunches(LeftBunchesInTheSky,LeftSkyComp,NumberLeftSkyComp);
-                    }
-
-                    if ((NumberLeftSkyComp>0)||(NumberRightSkyComp))
-                    {///correct this place in the original text!!!!
-                        FindingBoundaryChains();
-                        TranslationIntoBigDimension();
-                    }
-	            }
-            }
-        }
-    }//skf
-
-    marking_detector->strips = GrayBunches;
-
-    marking_detector->detect(markings, LowerSkyFiber);
+    memset(VerticalContrastCurves, (int) '\0', sizeof(int)*(768));
+    memset(VerticalLinesLength, (int) '\0', sizeof(int)*(32));
+    memset(VertLineFirstStrip, (int) '\0', sizeof(int)*(32));
+    memset(ConnectedVertLines, (int) '\0', sizeof(int)*(32));
+    memset(ConnectedVertLinesRight, (int) '\0', sizeof(int)*(32));
+    memset(ConnectedLeftBounVert, (int) '\0', sizeof(int)*(32));
+    memset(RightBounVert, (int) '\0', sizeof(int)*(32));
+    memset(FirstConnectedVertline, (int) '\0', sizeof(int)*(32));
+    memset(LastConnectedVertline, (int) '\0', sizeof(int)*(32));
+    memset(LeftClosestLine, (int) '\0', sizeof(int)*(32));
+    memset(UpperClosestLine, (int) '\0', sizeof(int)*(32));
+    memset(LowerClosestLine, (int) '\0', sizeof(int)*(32));
+    memset(LeftClosestLineIntersecting, (int) '\0', sizeof(int)*(32));//last_cor26.03.18
+    memset(RightClosestLine, (int) '\0', sizeof(int)*(32));
+    memset(RightClosestLineIntersecting, (int) '\0', sizeof(int)*(32));//last_cor26.03.18
+    memset(StripSignals, (int) '\0', sizeof(int)*(NumStrips));//last_cor30.10.17
+    memset(StripNewNumber, (int) '\0', sizeof(int)*(NumStrips));
+    memset(StripSignalsAdditional, (int) '\0', sizeof(int)*(NumStrips));
+    memset(StripNewNumberAdditional, (int) '\0', sizeof(int)*(NumStrips));
 
 
+    NumberOfVertLines = 0;
+    NumberOfVertLinesCloseToSignals = 0;
+    NumberOfVertLinesCloseToSignals1 = 0;
 
-    if (GreenFinding)
-     {//grfind
-    	 UpperGreenBoundaryLeft = -1;
-    	 UpperGreenBoundaryRight = -1;
-
-    	 GreenMainLeft = -1;
-    	 GreenMainLeftLb = -1;
-    	 GreenMainLeftRb = -1;
-    	 GreenMainRight = -1;
-    	 GreenMainRightLb = -1;
-    	 GreenMainRightRb = -1;
-
-     	 memset(LeftGreenBoundary,(int) '\0',sizeof(int)*DimX);
-    	 LeftGreenBoundaryBunch= new int[NumStrips];
-    	 memset(LeftGreenBoundaryBunch,(int) '\0',sizeof(int)*NumStrips);
-    	 memset(LeftGreenBoundaryVert,(int) '\0',sizeof(int)*NumStrips);//last_cor05.11.17
-     	 memset(LeftGreenBoundarySection,(int) '\0',sizeof(int)*NumStrips);
-     	 memset(LeftAdjacentNonGreenSectionMax,(int) '\0',sizeof(int)*NumStrips);
-     	 memset(LeftAdjacentGreenSectionMax,(int) '\0',sizeof(int)*NumStrips);
-     	 memset(RightGreenBoundary,(int) '\0',sizeof(int)*DimX);
-    	 if (number_of_sections > 0)
-    	 {
-             LeftRightSectionNumberOfRightGreenBoundaryPoints = new int[number_of_sections];
-             memset(LeftRightSectionNumberOfRightGreenBoundaryPoints,(int) '\0',sizeof(int)*number_of_sections);
-    	 }
-    	 memset(RightGreenBoundaryBunch,(int) '\0',sizeof(int)*NumStrips);
-    	 memset(RightGreenBoundarySection,(int) '\0',sizeof(int)*NumStrips);
-    	 memset(RightAdjacentNonGreenSectionMax,(int) '\0',sizeof(int)*NumStrips);
-    	 memset(RightAdjacentGreenSectionMax,(int) '\0',sizeof(int)*NumStrips);//last_cor09.12.16
-
-    	 ColorShapeSectionClassification();
-    	    UpperGreenBoundaryLeft=0;//last_cor02.11.16
-    	 	UpperGreenBoundaryRight=0;
-    	 green_success_left = MaximumGreenComp(1);
-    	 green_success_right = MaximumGreenComp(0);
-    	 vert_line_bound_index = VerticalPartsofGreenBoundary();//last_cor05.11.17
-     }//grfind
-
-
-        memset(VerticalContrastCurves, (int) '\0', sizeof(int)*(768));
-     	memset(VerticalLinesLength, (int) '\0', sizeof(int)*(32));
-     	memset(VertLineFirstStrip, (int) '\0', sizeof(int)*(32));
-     	memset(ConnectedVertLines, (int) '\0', sizeof(int)*(32));
-     	memset(ConnectedVertLinesRight, (int) '\0', sizeof(int)*(32));
-     	memset(ConnectedLeftBounVert, (int) '\0', sizeof(int)*(32));
-     	memset(RightBounVert, (int) '\0', sizeof(int)*(32));
-     	memset(FirstConnectedVertline, (int) '\0', sizeof(int)*(32));
-     	memset(LastConnectedVertline, (int) '\0', sizeof(int)*(32));
-     	memset(LeftClosestLine, (int) '\0', sizeof(int)*(32));
-     	memset(UpperClosestLine, (int) '\0', sizeof(int)*(32));
-     	memset(LowerClosestLine, (int) '\0', sizeof(int)*(32));
-     	memset(LeftClosestLineIntersecting, (int) '\0', sizeof(int)*(32));//last_cor26.03.18
-     	memset(RightClosestLine, (int) '\0', sizeof(int)*(32));
-     	memset(RightClosestLineIntersecting, (int) '\0', sizeof(int)*(32));//last_cor26.03.18
-     	memset(StripSignals, (int) '\0', sizeof(int)*(NumStrips));//last_cor30.10.17
-     	memset(StripNewNumber, (int) '\0', sizeof(int)*(NumStrips));
-     	memset(StripSignalsAdditional, (int) '\0', sizeof(int)*(NumStrips));
-     	memset(StripNewNumberAdditional, (int) '\0', sizeof(int)*(NumStrips));
-
-
-
-     	NumberOfVertLines=0;
-    NumberOfVertLinesCloseToSignals=0;
-    NumberOfVertLinesCloseToSignals1=0;
-
-
-    if(maximum_number_of_ordered_bunches>0)
+    if (maximum_number_of_ordered_bunches > 0)
     {
-	    //VertFinding=TRUE;
         memset(SignalNumber,(int) '\0',sizeof(int)*(256));
         memset(SignalNumberAdditional,(int) '\0',sizeof(int)*(256));
 
-        success_find=FindSignalZones();
-        LineVertTrace=new int [maximum_number_of_ordered_bunches*NumStrips];
+
+
+        int success_find = FindSignalZones();
+
+        LineVertTrace = new int [maximum_number_of_ordered_bunches*NumStrips];
+
         memset(LineVertTrace,(int) '\0',sizeof(int)*(maximum_number_of_ordered_bunches*NumStrips));
-        vertical_success=VerticalLinesConstruct();
-        vert_signal_connected=VerticalLinesSignalsConnected();
+
+        int vertical_success = VerticalLinesConstruct();
+
+        int vert_signal_connected = VerticalLinesSignalsConnected();
+
         ConnectedVerticalLines();
-        intersec_vert=IntersectingVerticalLines();
+
+        int intersec_vert = IntersectingVerticalLines();
+
         VerticalConnectedToBoundary();
-        breaking_vert=BreakingVerticalLines();
+
+        int breaking_vert = BreakingVerticalLines();
     }
+}
+
+
+
+/*
+ *
+ *
+ *
+ */
+void CImageProcess::detect_green()
+{
+    UpperGreenBoundaryLeft = -1;
+    UpperGreenBoundaryRight = -1;
+
+    GreenMainLeft = -1;
+    GreenMainLeftLb = -1;
+    GreenMainLeftRb = -1;
+    GreenMainRight = -1;
+    GreenMainRightLb = -1;
+    GreenMainRightRb = -1;
+
+    memset(LeftGreenBoundary,(int) '\0',sizeof(int)*DimX);
+    LeftGreenBoundaryBunch= new int[NumStrips];
+    memset(LeftGreenBoundaryBunch,(int) '\0',sizeof(int)*NumStrips);
+    memset(LeftGreenBoundaryVert,(int) '\0',sizeof(int)*NumStrips);//last_cor05.11.17
+    memset(LeftGreenBoundarySection,(int) '\0',sizeof(int)*NumStrips);
+    memset(LeftAdjacentNonGreenSectionMax,(int) '\0',sizeof(int)*NumStrips);
+    memset(LeftAdjacentGreenSectionMax,(int) '\0',sizeof(int)*NumStrips);
+    memset(RightGreenBoundary,(int) '\0',sizeof(int)*DimX);
+    if (number_of_sections > 0)
+    {
+        LeftRightSectionNumberOfRightGreenBoundaryPoints = new int[number_of_sections];
+        memset(LeftRightSectionNumberOfRightGreenBoundaryPoints,(int) '\0',sizeof(int)*number_of_sections);
+    }
+    memset(RightGreenBoundaryBunch,(int) '\0',sizeof(int)*NumStrips);
+    memset(RightGreenBoundarySection,(int) '\0',sizeof(int)*NumStrips);
+    memset(RightAdjacentNonGreenSectionMax,(int) '\0',sizeof(int)*NumStrips);
+    memset(RightAdjacentGreenSectionMax,(int) '\0',sizeof(int)*NumStrips);//last_cor09.12.16
+
+    ColorShapeSectionClassification();
+
+    UpperGreenBoundaryLeft = 0;
+    UpperGreenBoundaryRight = 0;
+
+    MaximumGreenComp(1);
+    MaximumGreenComp(0);
+
+    VerticalPartsofGreenBoundary();
+}
+
+
+
+
+/*
+ * @Description:
+ *
+ *
+ */
+void CImageProcess::detect_sky()
+{
+    int sky_hist[64];
+    int sect_weight[64];
+    int sky_hist_right[64];
+    int sect_weight_right[64];
+
+    SkyLeftHueZone = -1;
+    SkyRightHueZone = -1;
+
+    LowerSkyFiber = NumStrips+1;
+    UpperSkyFiber = -1;
+
+    if (!HorizontalVertical)
+    {//horvert
+        memset(SkyVisualization,(int) '\0',sizeof(int)*DimX);
+        memset(SkyBoundaries,(int) '\0',sizeof(int)*1920);
+        memset(SkyComponents,(int) '\0',sizeof(int)*32);
+        memset(SkyGreenComponents,(int) '\0',sizeof(int)*NUM_SECT1);
+        memset(sky_hist,(int) '\0',sizeof(int)*64);
+
+        SkyIntencitiesDistributionFinding(sky_hist, sect_weight, 0);
+
+        SkyMainLeft = -1;
+        SkySaturatedLeft = -1;
+
+        NumberLeftSkyComp = 0;
+        NumberRightSkyComp = 0;
+
+        int last_intensity_value = -1;
+        int sky_saturated_left = -1;
+
+        SkyMainLeft = MaximumSky(sky_hist,sect_weight,&last_intensity_value,&sky_saturated_left);
+
+        SkySaturatedLeft = sky_saturated_left;
+
+        if (SkyMainLeft >= 0)
+        {
+            NumberLeftSkyComp++;
+            SkyGreenComponents[SkyMainLeft] = 1;
+            int sky_main_left_hue = ColorSection->section_mean_hue[SkyMainLeft];//last_cor15.06.15
+            SkyLeftHueZone = hue_zones[sky_main_left_hue];
+        }
+
+        memset(sky_hist_right,(int) '\0',sizeof(int)*64);
+
+        SkyIntencitiesDistributionFinding(sky_hist_right,sect_weight_right,1);
+
+        SkyMainRight = -1;
+        SkySaturatedRight =-1;
+
+        int last_intensity_value_right = -1;
+        int sky_saturated_right=-1;
+
+        SkyMainRight = MaximumSky(sky_hist_right,sect_weight_right,&last_intensity_value_right,
+                                  &sky_saturated_right);
+
+        SkySaturatedRight = sky_saturated_right;
+
+        if (SkyMainRight >= 0)
+        {//skmr
+            SkyGreenComponents[SkyMainRight] = 1;
+            NumberRightSkyComp++;
+            int sky_main_right_hue = ColorSection->section_mean_hue[SkyMainRight];//last_cor15.06.15
+            SkyRightHueZone = hue_zones[sky_main_right_hue];
+        }//skmr
+
+        if (SkyMainLeft >= 0)
+        {//skml
+            if (number_of_section_left > 0)
+            {
+                LeftSkyComp = new int[number_of_section_left];
+                BelongsSkyTo(sky_hist,0,number_of_section_left);
+            }
+        }//skml
+
+        if (SkyMainRight >= 0)
+        {
+            if (number_of_section_right > 0)
+            {
+                if (!RightSkyComp)
+                {
+                    RightSkyComp = new int[number_of_section_right];
+                }
+                BelongsSkyTo(sky_hist_right,number_of_section_left,number_of_sections);
+            }
+        }
+    }//horvert
+    else
+    {
+        memset(sky_hist,(int) '\0',sizeof(int)*64);
+    }
+
+    NumberOfSkyBoundaryPoints = 0;
+
+    if ((NumberLeftSkyComp > 0) || (NumberRightSkyComp > 0))
+    {
+        if (MaximumNumberOfCoveringElements > 0)
+        {
+            if (NumberLeftSkyComp > 0)
+            {
+                LeftBunchesInTheSky= new int [MaximumNumberOfCoveringElements*NumStrips];
+                memset(LeftBunchesInTheSky,(int) '\0',sizeof(int)*(MaximumNumberOfCoveringElements*NumStrips));
+            }
+
+            if (NumberRightSkyComp > 0)
+            {
+                RightBunchesInTheSky= new int [MaximumNumberOfCoveringElements*NumStrips];
+                memset(RightBunchesInTheSky,(int) '\0',sizeof(int)*(MaximumNumberOfCoveringElements*NumStrips));
+            }
+
+            if ((NumberLeftSkyComp)||(NumberRightSkyComp))
+            {
+                LeftRightSkyAddition();
+
+                if (NumberRightSkyComp > 0)
+                {
+                    LabelingSkyBunches(RightBunchesInTheSky,RightSkyComp,NumberRightSkyComp);
+                }
+
+                if(NumberLeftSkyComp > 0)
+                {
+                    LabelingSkyBunches(LeftBunchesInTheSky,LeftSkyComp,NumberLeftSkyComp);
+                }
+
+                if ((NumberLeftSkyComp>0)||(NumberRightSkyComp))
+                {///correct this place in the original text!!!!
+                    FindingBoundaryChains();
+                    TranslationIntoBigDimension();
+                }
+            }
+        }
+    }
+
 }
 
 
@@ -1523,10 +1518,11 @@ void CImageProcess::ContrastBunchesMotion(int num_strips, int* bunches_location)
 	}
 
 }
-//=====================================================
-int
 
-CImageProcess::ExtensionOfLeftContrast(int number_of_strip, int bunch_number,
+
+
+
+int CImageProcess::ExtensionOfLeftContrast(int number_of_strip, int bunch_number,
 		int bunch_beg, int bunch_end, int bunch_hue, int bunch_lower_hue,
 		int bunch_upper_hue, int bunch_gray, int bunch_lower_gray,
 		int bunch_upper_gray, int bunch_saturation, int bunch_lower_saturation,
@@ -14633,8 +14629,6 @@ TIntColoredCharacteristics::TIntColoredCharacteristics(void) {
 	right_shift_of_the_position = new int[MAX_COL_INT];
 	right_total_shift = new int[MAX_COL_INT];
 	right_previous_bunch_number = new int[MAX_COL_INT];
-//bunches_occurred=new int[];
-//bunch_connections=new int[];
 }
 //=====================================================
 TIntColoredCharacteristics::~TIntColoredCharacteristics(void) {
@@ -14649,8 +14643,6 @@ TIntColoredCharacteristics::~TIntColoredCharacteristics(void) {
 	delete[] new_right_adjacent;
 	delete[] ordered_bunch_number;
 	delete[] old_ordered_bunch_number;
-	//delete[] label_segments;
-	//delete[] center_bunch_suitability;
 	delete[] new_bunch_number;
 	delete[] old_bunch_number;
 	delete[] visible_bunches;
@@ -14679,4 +14671,32 @@ CMotion::CMotion(void) {
 //=====================================================
 CMotion::~CMotion(void) {
 	delete[] SeveralIntervalsMotion;
+}
+
+
+
+/*
+ * @Description:
+ *      Draws all found road marking lines.
+ * @Parameters:
+ *      @In:    image -- image, where road marking will be drawn,
+ *              markings -- list, where from markings are extracted and drawn.
+ */
+void CImageProcess::draw_markings(cv::Mat& image, std::vector<Marking>& markings)
+{
+    cv::Scalar color(250, 180, 30);     // color of line
+    int thickness = 2;  // thickness of line
+
+    for (auto& marking: markings)
+    {
+        for (auto& bunch: marking.bunches)
+        {
+            float y = (STRIPSNUMBER - bunch.stripNumber - 0.5) * StripWidth;
+
+            cv::Point begin(bunch.beg, y);
+            cv::Point end(bunch.end, y);
+
+            cv::line(image, begin, end, color, thickness);
+        }
+    }
 }

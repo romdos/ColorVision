@@ -41,7 +41,7 @@ public:
 
 public:
 
-    void detect(std::vector<Marking>& markings,
+    void find(std::vector<Marking>& markings,
                 std::uint8_t low_sky_boundary);
 };
 

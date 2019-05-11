@@ -21,7 +21,6 @@
 
 
 
-
 #include "Strip.h"
 #include "ColorIntervalSelect.h"
 #include "ColorSection.h"
@@ -32,17 +31,23 @@
 
 
 
+#define IMAGE_WIDTH 640
+#define IMAGE_HEIGHT 480
+
+#define HORIZONTAL 0
+#define VERTICAL 1
+
+
+
+
+
 
 
 class CImageProcess
 {
 public:
-	CImageProcess(std::uint8_t* ImageData, long ImageSizex,
-			long ImageSizey,int NumOfStrips,int TotalNumberofFrames);
+    CImageProcess();
 	~CImageProcess();
-
-	std::uint8_t* Im; // pixels of the image
-
 
     int DimX; // width  of the image in pixels
 	int DimY; // height of the image in pixels
@@ -53,10 +58,10 @@ public:
 
     bool SkyFinding;
     int Feature;
-    int NumberOfCurrentFrame;
     int RedNumberOfCurrentFrame;
     int RedNumberOfPreviousFrame;
     bool VideoCameraIsLoaded;
+
     //finding sky
     int SkyMainLeft;
     int SkyMainRight;
@@ -91,7 +96,7 @@ public:
 
     int* SkyStripsOfBoundaryPoints;
     int* SkyColumnsOfBoundaryPoints;
-    int* SkyPixelsOfBoundaryPoints;
+    int SkyPixelsOfBoundaryPoints[IMAGE_WIDTH];
     int* SkyVisualization;
     int NumberOfSkyBoundaryPoints;
     int SkyComponents[32];
@@ -168,7 +173,6 @@ public:
 
     bool HorizontalVertical;
     bool GGBorGGR;
-    int ImageRepresentationType;
     int RealColorNumSect;
     CMotion*   MotionAnalysis;
     CStrip* CurStrip;
@@ -194,6 +198,8 @@ public:
 	int* invert_color_difference2;
 
     CColorIntervalSelect* ColorInt;
+
+
     TIntColored* IntegratedColorIntervals;
     TIntColoredCharacteristics* IntegratedColorBunchesCharacteristics;
     TIntColorLessBack* IntegratedColorlessBackIntervals;
@@ -207,17 +213,18 @@ public:
     int* SectionNeighborsLeftRight;
     int* SectionNeighborsLeftRightIteration;
 
+    MarkingDetector* marking_detector;
 
     int number_of_section_left;
     int number_of_section_right;
     int number_of_sections;
     int maximum_number_of_ordered_bunches;
 
+public:
 
 	void InitialConstructions();//memory allocation and object construction
 
-	void SegmentImage(MarkingDetector* marking_detector, std::vector<Marking>& markings,
-	        int CurrentNumofFrame); // segments the image
+	void segment(cv::Mat& frame, size_t frame_count); // segments the image
 
 	void DeleteTemporal(); // delete intermediate arrays;
 
@@ -235,79 +242,49 @@ int indic_length,int ratio_length,int ratio_length1,int strip_number,int previou
 int bunch_lower_hue, int bunch_upper_hue,int bunch_gray,int bunch_lower_gray,int bunch_upper_gray,int bunch_saturation,
 int bunch_lower_saturation,int bunch_upper_saturation);
 
-	 int FindingRightConectedSection(void);
+    int FindingRightConectedSection(void);
 
-	 int StraightLineHighObjectsTesting(void);
+    int StraightLineHighObjectsTesting(void);
 
-	  int
+    int ConnectedSections(int* initial_matrix);
 
-	 ConnectedSections(int* initial_matrix);
+    int FindingConnectedLeftSections(int coun_row,int coun_column,int mat_entry);
 
-	  int
-
-	 FindingConnectedLeftSections(int coun_row,int coun_column,int mat_entry);
-
-	  int
-
-	 FindingLineSegments(int sect_length,int section_num,
+    int FindingLineSegments(int sect_length,int section_num,
 	 int* node_coordinates,int* opp_nodes_coor,int* differ_array);
 
-	 int
-
-	 MaximumTripleMaximum(int* main_array,int* compl_array,int dimen,int* triple_max,
+    int MaximumTripleMaximum(int* main_array,int* compl_array,int dimen,int* triple_max,
 			 int* max_value,int* triple_max_value,int* one_pix_max_neighb,int* two_pix_max_neighb,
 			 int* zero_two_pix);
-	 int
-
-	 CenterOfMass(int* main_array,int dimen,int* mass_center,int* mass_deviation,int* left_number,
+    int CenterOfMass(int* main_array,int dimen,int* mass_center,int* mass_deviation,int* left_number,
 	 int* right_number,int* small_angle,int* big_angle,int* painting,int* new_array,int new_dim);
 
-	 int
-
-	 MaximumTripleMaximumReduced(int* main_array,int dimen,int* triple_max,
+    int MaximumTripleMaximumReduced(int* main_array,int dimen,int* triple_max,
 	 int* max_value,int* triple_max_value,int* one_pix_max_neighb,int* two_pix_max_neighb,
 	 int* zero_two_pix,int* loc_max_positions,int* num_loc_maxim,int* second_maxim_pos,
 	 int* second_max_val,int* first_noticable,int* last_noticable,int* noticable_sum);
 
-	 int
-
-	 Longest_Straight_Comp(int* difference_components,int num_point,int start_point,
+    int Longest_Straight_Comp(int* difference_components,int num_point,int start_point,
 	 int last_point,int scale,int* first_segment,int* last_segment,int* number_of_segments,
 	 int* dev_reduced,int* glob_dev,int* glob_dev_plus,int* end_coordinates);
 
-	 int
+    int InclineRefinement(int section_number,int* incl_right);
 
-	 InclineRefinement(int section_number,int* incl_right);
-
-	 int
-
-	 InclineHistogram(int* main_array,int* hust_plus,int* hist_minus,
+    int InclineHistogram(int* main_array,int* hust_plus,int* hist_minus,
 	 int first_incl,int last_incl,int* neg_count);
 
-	 int
+    int FindingMaxPosNegSegments(int sect_length,int* chain_array,int* max_start);
 
-	 FindingMaxPosNegSegments(int sect_length,int* chain_array,int* max_start);
-
-	 void
-
-	 SkyIntencitiesDistributionFinding(int* sky_gray,int* section_weight,
+    void SkyIntencitiesDistributionFinding(int* sky_gray,int* section_weight,
 	 int left_right);
 
-	 int
+    int    MaximumSky(int* sk_gray,int* sec_weight,int* intensity_last,int* max_saturated);
 
-	 MaximumSky(int* sk_gray,int* sec_weight,int* intensity_last,int* max_saturated);
+    void BelongsSkyTo(int* sky_gr,int first_section,int last_section);
 
-	 void
+    void LabelingSkyBunches(int* bunch_matrix,int* sky_components,int comp_number);
 
-	 BelongsSkyTo(int* sky_gr,int first_section,int last_section);
-
-	 void
-
-	LabelingSkyBunches(int* bunch_matrix,int* sky_components,int comp_number);
-
-	 void
-
-	 LeftRightSkyAddition(void);
+	 void   LeftRightSkyAddition(void);
 
 	 void
 
@@ -455,6 +432,11 @@ int bunch_lower_saturation,int bunch_upper_saturation);
 
 	 int VerticalLinesSignalsConnected(void);
 
+	 void detect_sky();
+
+	 void detect_green();
+
+	 void draw_markings(cv::Mat& image, std::vector<Marking>& markings);
 };
 
 #endif

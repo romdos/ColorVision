@@ -54,9 +54,7 @@ public:
 	TIntColored* ColoredIntervalsStructure;
 	TIntColoredCharacteristics* ColorBunchesCharacteristics;
 	TIntColorLessBack* ColorLessIntervalsStructure;
-	     bool VideoCameraIsLoaded;
-		 int TotalNumFrame;
-		 int CurrentFrameNumber;
+    bool VideoCameraIsLoaded;
 
 	int* intensities_with_colored_int;
 	int NumInterestingIntensities;

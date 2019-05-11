@@ -1,27 +1,30 @@
-
 /*
- * RoadGrSky.cpp
  *
- *  Created on: Oct 24, 2016
- *      Author: konstantin
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
-//#include "stdafx.h"
-#include "ColorVision.h"
+
+
+
+
 #include "ImageProcess.h"
+
+
+
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
 #include <time.h>
-//#include <stdlib.h>
 #include <algorithm>
 
 using namespace std;
 
-/*#ifdef _DEBUG
-#undef THIS_FILE
-static char THIS_FILE[]=__FILE__;
-#define new DEBUG_NEW
-#endif*/
+
 
 static  int hue_zones[NUM_HUES] = {1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3,
 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5,
@@ -18226,3 +18229,4 @@ sequence_optimal=count_chain;
     *max_length=maximum_chain_length;
 	return(sequence_optimal);
 }
+

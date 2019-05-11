@@ -1,6 +1,6 @@
 /*
  *  Starts a program. Runs a main segmentation function.
- *
+ *  Finds a road marking line.
  *
  *
  *
@@ -10,19 +10,18 @@
 
 
 
-
-
-
-#include "ColorVision.h"
-
+#include "ImageProcess.h"
 
 
 
 
 int main(int argc, char* argv[])
 {
-    int RealDimX;
-    int *BoundariesOfTheSky;
+    if (argc < 2)
+    {
+        std::cout << "No video path!\n";
+        return -1;
+    }
 
     std::string video_path = argv[1];
     std::string window_name = "Source";
@@ -37,58 +36,35 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-
-    Input_Data InputData;
-    InputData.CameraNumber = 0;
-    InputData.HorizontalVertical = 0;
-    InputData.NumberOfStrips = 48;
-    InputData.PermuteRatios = 1;
-    InputData.VideoInputLimit = 500;
-    InputData.m_NetworkDirectX = 1;
-    InputData.m_ParamHaveBeenChanged = 0;
-    InputData.m_VideoCameraIsLoaded = 1;
-    InputData.SkyFinding = true;
-    InputData.GreenFinding = true;
-
-
-    CColorVisionApp *colorVisionProces = new CColorVisionApp;
-    colorVisionProces->InputDataCP = &InputData;
-    colorVisionProces->aligned_width = 3 * IMAGE_WIDTH; //DimenX_bytes;
-    colorVisionProces->pBuffer = NULL;
-    colorVisionProces->top_bottom_origin = 0;
+    CImageProcess vision;
+    MarkingDetector marking_detector;
 
     cv::Size size(IMAGE_WIDTH, IMAGE_HEIGHT);
-    cv::Mat frame, resizedFrame;
+    cv::Mat frame;
+    cv::Mat resized_fr; // todo: define as zeros with size and type
 
-    for (int iImg = 0;; ++iImg)
+    for (size_t fr_number = 0; ; ++fr_number)
     {
         cap >> frame;
+
         if (frame.empty())
             break;
 
-        cv::resize(frame, resizedFrame, size);
-        RealDimX = IMAGE_WIDTH;
+        cv::resize(frame, resized_fr, size);
 
-        BoundariesOfTheSky = new int[RealDimX];
-        memset(BoundariesOfTheSky, (int) '\0', sizeof(int) * RealDimX);
+        vision.segment(resized_fr, fr_number);
 
         std::vector<Marking> markings;
+        marking_detector.strips = vision.GrayBunches;
+        marking_detector.find(markings, vision.LowerSkyFiber);
 
-        colorVisionProces->OnVideoCameraprocess(&resizedFrame, markings, IMAGE_WIDTH, IMAGE_HEIGHT, &InputData, iImg,
-                10, BoundariesOfTheSky);
+        std::cout << vision.LowerSkyFiber << std::endl;
 
+        vision.draw_markings(resized_fr, markings);
 
-        colorVisionProces->DirectArrayDraw(0);
-        colorVisionProces->draw_markings(markings);
-
-
-        resizedFrame.data = colorVisionProces->pBuffer;
-
-        imshow(window_name, resizedFrame);
+        cv::imshow(window_name, resized_fr);
 
         cv::waitKey(3);
     }
-
-    delete[] BoundariesOfTheSky;
 }
 

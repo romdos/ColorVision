@@ -1,19 +1,36 @@
-//----------------------------------------------------------------------------
-//Programmer:    K.I. Kiy                   File      bunchrel.cpp
-//Last revision   5.02.04                            Creation  28.07.03
-//Last printing  19.02.10
-//----------------------------------------------------------------------------
+/*
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ */
 
-#include "ColorVision.h"
-//#include "ColorIntervalSelect.h"
+
+
+
 #include "ImageProcess.h"
-//#include "Strip.h"
+
+
+
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <math.h>
 #include <algorithm>
+
+
+
 using namespace std;
+
+
+
+
+
+
 static  int dev_mean[8] = {5, 8, 8, 8, 8, 10, 12, 8};//last_cor11.12.17
 static  int imp_dev_mean[8] = {12, 14, 16, 16, 14, 14, 14, 12};//last_cor27.01.16
 static  int dev_mean_sat[16] = {1, 1, 1, 1, 1, 2, 3, 4, 4, 4, 4, 4, 3, 2, 1, 0};
@@ -228,7 +245,7 @@ CColorIntervalSelect::BunchClassification()
 	return;
 	}
 
-	if((VideoCameraIsLoaded)&&(TotalNumFrame>1))
+	if (VideoCameraIsLoaded)
 	{
 		ColorBunchesCharacteristics->num_of_bunches=NumberOfColoredIntervals;
 		visible_bunches=ColorBunchesCharacteristics->visible_bunches;
@@ -13855,11 +13872,12 @@ CColorIntervalSelect::SimpleMerging(int bunch,int bunch_new)
 	    }*/
 	}//not_coins
 
-	}
-//-----------------------------------------------------------------------------------
-void
+}
 
-CColorIntervalSelect::Cleaning(int numb)
+
+
+
+void CColorIntervalSelect::Cleaning(int numb)
 {
 	int coun_bunch1;
 	int coun_bunch;
@@ -13925,7 +13943,8 @@ for(coun1_bun=0;coun1_bun<NumberOfColoredIntervals;coun1_bun++)
   if(numb==1)
   {
 occurred_dimension=Max_number*PressedLength;
-bunches_occurred=new int[occurred_dimension];
+
+    bunches_occurred = new int[occurred_dimension];
   }
 
 }

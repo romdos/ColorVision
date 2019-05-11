@@ -6,14 +6,25 @@
 
 
 
+
+
 #ifndef BUNCHGRAY_H
 #define BUNCHGRAY_H
+
+
+
 
 
 // Container for bunches
 #include <vector>
 // To get segments
 #include "Strip.h"
+
+
+
+
+
+
 
 
 /* Grayscale bunch */
@@ -161,7 +172,7 @@ public:
 									 int* boundary_int);
 
     std::int8_t find_bursts(std::uint16_t max_length,
-                            std::uint16_t depth);
+                            std::uint8_t depth);
 
 };
 

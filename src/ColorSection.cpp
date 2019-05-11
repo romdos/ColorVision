@@ -1,6 +1,21 @@
-#include "ColorVision.h"
+/*
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ */
+
+
+
+
 #include "ColorSection.h"
 #include "ColorIntervalSelect.h"
+
+
+
 
 #include <algorithm>
 #include <stdlib.h>
@@ -8,11 +23,24 @@
 #include <stdio.h>
 #include <string.h>
 
+
+
+
+
+
 using namespace std;
 
+
+
+
+
 #define HORIZONT1 0
-//#define LENGTH 16
 #define TRUE 1
+
+
+
+
+
 
 static  int hue_zones[NUM_HUES] = {1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3,
 		3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5,

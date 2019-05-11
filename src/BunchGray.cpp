@@ -1939,29 +1939,29 @@ int CBunchGray::FindingIntervalsWithAdjacent(int last_member,
  *  @Description:
  *       Constructs burst bunches from given segments of a strip and adds them to bursts list.
  *  @Parameters:
- *      @In:    strip - where segments will be clustered,
- *              max_length -- upper boundary of bunch length,
- *              depth -- parameter, which shows how far we move forward along intensities.
+ *      @In:    max_length -- upper boundary of bunch length,
+ *              depth -- shows how deep we go forward along intensities.
  *  @Return value:
- *          -1 -- if no bunch was found,
- *          0 -- otherwise.
+ *              -1 -- if no bunch was found,
+ *              0 -- otherwise.
  *  @Notes:
  *  	todo: make convenient and efficient indexation -> (intens, interv) (e.g. B-tree).
 */
 std::int8_t CBunchGray::find_bursts(std::uint16_t max_length,
-                                    std::uint16_t depth)
+                                    std::uint8_t depth)
 {
-    // todo: analyse clear() operation for performance
+    // todo: analyse performance of clear()
     bursts.clear();
 
     /* Find maximal intensity with non-empty set of segments */
     TIntCharactGray* segments = StripCur->IntAllInformGray;
+
     std::uint8_t start_intens = NUM_INTEN1 - 1;
     std::uint8_t segments_num = segments[start_intens].num_of_int;
 
     while ((start_intens > 0) && (segments_num == 0))
     {
-        start_intens--;
+        --start_intens;
         segments_num = segments[start_intens].num_of_int;
     }
 
@@ -1973,6 +1973,7 @@ std::int8_t CBunchGray::find_bursts(std::uint16_t max_length,
     // Array (or matrix) showing was a segment (intens, number) already picked or not
     std::vector<bool> picked_segments(NUM_INTEN1 * MAX_INT_NUMBER, false);
 
+    // todo: not only start_intens can contain necessary seeds
     for (size_t segment = 0; segment < segments_num; segment++)
     {
         bool segment_picked = picked_segments[start_intens * MAX_INT_NUMBER + segment];
