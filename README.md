@@ -1,7 +1,7 @@
-### ColorVision
+## ColorVision
 Image Understanding project based on K. Kiy's theory. Detects road marking line.
 
-####Prerequisites
+### Prerequisites
 
 * Linux Platform (tested on Ubuntu 18.04);
 * С++11 compiler (tested gcc);
@@ -9,9 +9,9 @@ Image Understanding project based on K. Kiy's theory. Detects road marking line.
 * OpenCV 3.1.1 or higher,
 * CMake (optionally).
 
-#### Notes 
+### Notes 
 * Current version is aimed at road marking lines recognition 
 
-#### Related publications
+### Related publications
 * Kiy K.I. 
 
