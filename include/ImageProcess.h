@@ -16,7 +16,7 @@
 #ifndef IMAGE_PROCESS_H
 #define IMAGE_PROCESS_H
 
-// For min and max
+// for use of cv::Mat class
 #include <opencv2/opencv.hpp>
 
 

@@ -51,13 +51,15 @@ static  int dev_hue_zone[6] = {2, 2, 2, 2, 2, 2};
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-//=====================================================
-TIntColor::TIntColor(void)
+TIntColor::TIntColor()
 {
 
 }
+
+
+
 //=====================================================
-TIntColor::~TIntColor(void)
+TIntColor::~TIntColor()
 {
 	delete[] NumberOfColorBunch;
 	delete[] PosPeakHue;
@@ -784,7 +786,7 @@ CColorIntervalSelect::AnalysisColoredRanges(int* visibility, int* inver_num,
 	 //int num_interval1;
 	 int num_interval2;
 	 int total_number;
-	// unsigned char* painted_strip;
+	// std::uint8_t* painted_strip;
 	 //int* painted_numbers;
 	 int* involved_intervals;
 	 int NumberOfIntervalsInvolved;

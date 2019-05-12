@@ -43,7 +43,7 @@ MarkingDetector::~MarkingDetector()
 /*
  *  @Description:
  *       Finds all marking lines in a picture based on found candidate bunches (bursts)
- *       and pushes them to the list <markings>.
+ *          and pushes them to the list <markings>.
  *  @Parameters:
  *      @In:    low_sky_boundary -- lower boundary of the sky,
  *      @Out:   markings -- list where detected markings will be stored,

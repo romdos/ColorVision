@@ -681,7 +681,6 @@ void CImageProcess::DeleteTemporal()
 // todo: remove this function to constructor
 void CImageProcess::InitialConstructions()
 {
-
 	int Res_Width;
 	int Cor_Width;
 	int StripWidth1;
@@ -795,7 +794,7 @@ void CImageProcess::InitialConstructions()
 		CurStrip[i].PressedLength = PressedLength;
 		CurStrip[i].StripLength = StripLength;
 
-		CurStrip[i].valuable_intensity = new unsigned char[PressedLength];
+		CurStrip[i].valuable_intensity = new std::uint8_t[PressedLength];
 		CurStrip[i].valuable_interval = new int[PressedLength];
 		CurStrip[i].quantity_of_intensities = new int[PressedLength];
 		CurStrip[i].intensities_occurred = new int[PressedLength
@@ -833,7 +832,7 @@ void CImageProcess::InitialConstructions()
 		CurStrip[i].opponent1_max = new int[NUM_INTEN];
 		CurStrip[i].opponent1_mean = new float[NUM_INTEN];
 
-		CurStrip[i].valuable_intensityg = new unsigned char[PressedLength];
+		CurStrip[i].valuable_intensityg = new std::uint8_t[PressedLength];
 		CurStrip[i].valuable_intervalg = new int[PressedLength];
 		CurStrip[i].quantity_of_intensitiesg = new int[PressedLength];
 		CurStrip[i].intensities_occurredg = new int[PressedLength
@@ -976,7 +975,6 @@ void CImageProcess::InitialConstructions()
 
 
 
-
 /*
  * @Description:
  *      Prepares all basic constructions (histograms, bunches etc.)
@@ -996,8 +994,6 @@ void CImageProcess::segment(cv::Mat& frame,
 	MassiveGrayTop = -1;
 	MassiveGrayTopSection = -1;
 
-	TotalUpWeight = 0;
-
 	if (LengthofMotionAnalysisInterval != 0)
 	{
 		RedNumberOfCurrentFrame = frame_count % LengthofMotionAnalysisInterval;
@@ -1011,13 +1007,10 @@ void CImageProcess::segment(cv::Mat& frame,
         // todo: avoid memset().
 		memset(CurStrip[i].valuable_intensity, (char) '\0', PressedLength);
 		memset(CurStrip[i].quantity_of_intensities, (int) '\0', sizeof(int) * (PressedLength));
-		memset(CurStrip[i].bright_consistency, (int) '\0',
-				sizeof(int) * (PressedLength));
+		memset(CurStrip[i].bright_consistency, (int) '\0', sizeof(int) * (PressedLength));
 		memset(CurStrip[i].valuable_intensityg, (char) '\0', PressedLength);
-		memset(CurStrip[i].quantity_of_intensitiesg, (int) '\0',
-				sizeof(int) * (PressedLength));
-		memset(CurStrip[i].bright_consistencyg, (int) '\0',
-				sizeof(int) * (PressedLength));
+		memset(CurStrip[i].quantity_of_intensitiesg, (int) '\0', sizeof(int) * (PressedLength));
+		memset(CurStrip[i].bright_consistencyg, (int) '\0', sizeof(int) * (PressedLength));
 
 		memset(CurStrip[i].hist_fun, (int) '\0', sizeof(int) * NUM_INTEN);
 		memset(CurStrip[i].hist_sum, (int) '\0', sizeof(int) * NUM_INTEN);
@@ -1026,8 +1019,7 @@ void CImageProcess::segment(cv::Mat& frame,
 		memset(CurStrip[i].jump_end, (int) '\0', sizeof(int) * NUM_INTEN);
 		memset(CurStrip[i].thick_beg, (int) '\0', sizeof(int) * NUM_INTEN);
 		memset(CurStrip[i].thick_end, (int) '\0', sizeof(int) * NUM_INTEN);
-		memset(CurStrip[i].thick_break_end, (int) '\0',
-				sizeof(int) * NUM_INTEN);
+		memset(CurStrip[i].thick_break_end, (int) '\0', sizeof(int) * NUM_INTEN);
 		memset(CurStrip[i].thick_prev_end, (int) '\0', sizeof(int) * NUM_INTEN);
 		memset(CurStrip[i].thick_last, (int) '\0', sizeof(int) * NUM_INTEN);
 		memset(CurStrip[i].num_of_int, (int) '\0', sizeof(int) * NUM_INTEN);
@@ -1047,26 +1039,20 @@ void CImageProcess::segment(cv::Mat& frame,
 		memset(ColorInt[i].painted_strip_colored, (int) '\0', sizeof(int) * (PressedLength));
 		memset(ColorInt[i].painted_strip_colored_long, (int) '\0', sizeof(int) * (StripLength));
 
-
 		CurStrip[i].Loc_stat_geom_double(GGBorGGR);
 
         GrayBunches[i].find_bursts(2 * StripWidth, 5);
 
 		if (VideoCameraIsLoaded)
 		{
-			ColorInt[i].ColoredIntervalsStructure = &IntegratedColorIntervals[i
-					+ RedNumberOfCurrentFrame * NumStrips];
-			ColorInt[i].ColorBunchesCharacteristics =
-					&IntegratedColorBunchesCharacteristics[i
-							+ RedNumberOfCurrentFrame * NumStrips];
+			ColorInt[i].ColoredIntervalsStructure = &IntegratedColorIntervals[i + RedNumberOfCurrentFrame * NumStrips];
+			ColorInt[i].ColorBunchesCharacteristics = &IntegratedColorBunchesCharacteristics[i + RedNumberOfCurrentFrame * NumStrips];
 
 			if (frame_count > 1)
 			{
-				memset(IntegratedColorBunchesCharacteristics[i
-								+ NumStrips * RedNumberOfCurrentFrame].length_of_trajectory,
+				memset(IntegratedColorBunchesCharacteristics[i + NumStrips * RedNumberOfCurrentFrame].length_of_trajectory,
 						(int) '\0', sizeof(int) * (MAX_COL_INT));
-				memset(IntegratedColorBunchesCharacteristics[i
-								+ NumStrips * RedNumberOfCurrentFrame].right_length_of_trajectory,
+				memset(IntegratedColorBunchesCharacteristics[i + NumStrips * RedNumberOfCurrentFrame].right_length_of_trajectory,
 						(int) '\0', sizeof(int) * (MAX_COL_INT));
 			}
 		}
@@ -1107,9 +1093,8 @@ void CImageProcess::segment(cv::Mat& frame,
         }
 	}
 
-	maximum_number_of_ordered_bunches = 0;
-
     int number_ordered;
+    maximum_number_of_ordered_bunches = 0;
 
     for (int count_bunch_ord = 0; count_bunch_ord < NumStrips; count_bunch_ord++)
 	{
@@ -10822,10 +10807,6 @@ int left_right)
 			}
 
 		}
-		/*if(((last_srip_ratio>=14)&&((first_strip_ratio>=9)||(shape_ratio_mean>=11)))
-			   ||((first_strip_ratio>=10)&&(last_srip_ratio>=13))||
-			   ((shape_ratio_mean>=10)&&(last_srip_ratio>=15)&&(first_strip_ratio>=7))||
-			   ((shape_ratio_mean>=7)&&(last_srip_ratio>=15)&&(first_strip_ratio>=8)))*/
 	if(((last_srip_ratio>=14)&&((first_strip_ratio>=9)||(shape_ratio_mean>=8)||(upper_lower_ratio>=14)))
 	   ||((first_strip_ratio>=10)&&(last_srip_ratio>=13))||
 	   (((shape_ratio_mean>=8))&&(last_srip_ratio>=15)))
@@ -10848,13 +10829,6 @@ int left_right)
 			 sky_gray[count_intens]=count_sect+1;
 	         section_weight[count_intens]=weight_of_section;
 			 }
-			 /*else//last_cor04.11.15
-			 {
-				 if((count_intens==max_gray)&&(last_srip_ratio1>=15))
-				 {
-					 sky_gray[count_intens]=count_sect+1;
-				 }
-			 }*/
 			}
 		}//loopbound
 	 }
@@ -10863,13 +10837,12 @@ int left_right)
 	K:
 					;
 	}//cycle over left sections
-	MassiveGray=max_massive_gray;
-	MassiveGrayLow=max_massive_gray_low;
-	MassiveGrayTop=massive_gray_top;
-	MassiveGrayTopSection=massive_gray_top_section;
-	TotalUpWeight=total_up_weight;
-	return;
-	}
+
+	MassiveGray = max_massive_gray;
+	MassiveGrayLow = max_massive_gray_low;
+	MassiveGrayTop = massive_gray_top;
+	MassiveGrayTopSection = massive_gray_top_section;
+}
 
 
 
