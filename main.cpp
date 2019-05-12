@@ -23,13 +23,13 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    std::string video_path = argv[1];
+    std::string video_path = argv[1];    // "/home/roman/Videos/caltech-lanes/cordova1/f%05d.png"
     std::string window_name = "Source";
 
     cv::namedWindow(window_name, cv::WINDOW_AUTOSIZE);
     cv::moveWindow(window_name, 0, 0);
 
-    cv::VideoCapture cap(video_path);
+    cv::VideoCapture cap(argv[1]);
     if (!cap.isOpened())
     {
         printf("Can't open video file.");

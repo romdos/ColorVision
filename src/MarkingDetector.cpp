@@ -97,7 +97,7 @@ void MarkingDetector::find(std::vector<Marking>& markings,
                     }
                 }
 
-                if (marking.bunches.size() > 3)
+                if (marking.bunches.size() > 15) // todo: investigate
                     markings.push_back(marking);
             }
         }

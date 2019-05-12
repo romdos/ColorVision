@@ -1973,67 +1973,76 @@ std::int8_t CBunchGray::find_bursts(std::uint16_t max_length,
     // Array (or matrix) showing was a segment (intens, number) already picked or not
     std::vector<bool> picked_segments(NUM_INTEN1 * MAX_INT_NUMBER, false);
 
-    // todo: not only start_intens can contain necessary seeds
-    for (size_t segment = 0; segment < segments_num; segment++)
+    // line for seeds
+    std::uint8_t end_intens = start_intens / 3;  // todo: investigate
+    for (size_t intens = start_intens; intens > end_intens; --intens)
     {
-        bool segment_picked = picked_segments[start_intens * MAX_INT_NUMBER + segment];
-
-        if (segment_picked)
-            continue;
-
-        picked_segments[start_intens * MAX_INT_NUMBER + segment] = true;
-
-        std::int16_t beg = segments[start_intens].BegInt[segment];
-        std::int16_t end = segments[start_intens].EndInt[segment];
-
-        Segment origin_segment(beg, end);
-
-        if (origin_segment.length() > max_length)
-            continue;
-
-        /* Grow a bunch going from start_intens to left */
-        std::uint8_t picked_segments_num = 1;
-        std::uint8_t next_intens = start_intens - 1;
-        std::uint8_t intens_differ = start_intens - next_intens;
-        float mean_intens = start_intens;
-
-        while (intens_differ < depth)
+        segments_num = segments[intens].num_of_int;
+        for (size_t segment = 0; segment < segments_num; segment++)
         {
-            std::uint8_t next_segments_num = segments[next_intens].num_of_int;
+            bool segment_picked = picked_segments[intens * MAX_INT_NUMBER + segment];
 
-            for (size_t next_segment = 0; next_segment < next_segments_num; next_segment++)
+            if (segment_picked)
+                continue;
+
+            picked_segments[start_intens * MAX_INT_NUMBER + segment] = true;
+
+            std::int16_t beg = segments[intens].BegInt[segment];
+            std::int16_t end = segments[intens].EndInt[segment];
+
+            Segment seed(beg, end);
+
+            if (seed.length() > max_length)
+                continue;
+
+            /* Grow a bunch going from start_intens to left */
+            std::uint8_t picked_segments_num = 1;
+            std::uint8_t next_intens = intens - 1;
+            std::uint8_t intens_differ = intens - next_intens;
+            float mean_intens = intens;
+            // begin occupy
+            while (intens_differ < depth)
             {
-                if (picked_segments[next_intens * MAX_INT_NUMBER + next_segment])
-                    continue;
+                std::uint8_t next_segments_num = segments[next_intens].num_of_int;
 
-                std::int16_t candidate_beg = segments[next_intens].BegInt[next_segment];
-                std::int16_t candidate_end = segments[next_intens].EndInt[next_segment];
-
-                Segment segment_candidate(beg, end);
-				std::uint16_t r1, r2; // useless, only for measure_intersection
-				bool intersected = measure_intersection(origin_segment, segment_candidate, &r1, &r2) <= 1;
-                if (intersected)
+                for (size_t next_segment = 0; next_segment < next_segments_num; next_segment++)
                 {
-                    candidate_beg = std::min(beg, candidate_beg);
-                    candidate_end = std::max(end, candidate_end);
-                    // if new length is not big
-                    if ((candidate_end - candidate_beg + 1) < max_length)
+                    if (picked_segments[next_intens * MAX_INT_NUMBER + next_segment])
+                        continue;
+
+                    std::int16_t candidate_beg = segments[next_intens].BegInt[next_segment];
+                    std::int16_t candidate_end = segments[next_intens].EndInt[next_segment];
+
+                    Segment segment_candidate(beg, end);
+                    if (segment_candidate.length() > max_length)
+                        continue;
+
+                    std::uint16_t r1, r2; // useless, only for measure_intersection
+                    bool intersected = measure_intersection(seed, segment_candidate, &r1, &r2) <= 1;
+                    if (intersected)
                     {
-                        picked_segments[next_intens * MAX_INT_NUMBER + next_segment] = true;
-                        beg = candidate_beg;
-                        end = candidate_end;
-                        mean_intens += next_intens;
-                        ++picked_segments_num;
+                        candidate_beg = std::min(beg, candidate_beg);
+                        candidate_end = std::max(end, candidate_end);
+                        // if new length is not big
+                        if ((candidate_end - candidate_beg + 1) < max_length)
+                        {
+                            picked_segments[next_intens * MAX_INT_NUMBER + next_segment] = true;
+                            beg = candidate_beg;
+                            end = candidate_end;
+                            mean_intens += next_intens;
+                            ++picked_segments_num;
+                        }
                     }
                 }
+                next_intens--;
+                intens_differ = start_intens - next_intens;
             }
-            next_intens--;
-            intens_differ = start_intens - next_intens;
+            mean_intens /= picked_segments_num;
+            GrayBunch bunch(beg, end, StripCur->num_strip, mean_intens);
+            // todo: analyse copy
+            bursts.push_back(bunch);
         }
-        mean_intens /= picked_segments_num;
-        GrayBunch bunch(beg, end, StripCur->num_strip, mean_intens);
-        // todo: analyse copy
-        bursts.push_back(bunch);
     }
+
     return 0;
 }
