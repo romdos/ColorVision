@@ -126,7 +126,7 @@ CImageProcess::CImageProcess()
 
 	Residual1 = 0;
 	Residual = 0;
-	NumStrips = STRIPSNUMBER;
+	NumStrips = STRIPS_NUMBER;
 
 	left_shift1[0] = 3;
 	left_shift1[1] = 3;
@@ -14664,7 +14664,7 @@ void CImageProcess::draw_markings(cv::Mat& image, std::vector<Marking>& markings
     {
         for (auto& bunch: marking.bunches)
         {
-            float y = (STRIPSNUMBER - bunch.stripNumber - 0.5) * StripWidth;
+            float y = (STRIPS_NUMBER - bunch.stripNumber - 0.5) * StripWidth;
 
             cv::Point begin(bunch.beg, y);
             cv::Point end(bunch.end, y);

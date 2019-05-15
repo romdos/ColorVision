@@ -10,6 +10,7 @@
 
 
 
+#include <cmath>
 #include "MarkingDetector.h"
 
 
@@ -51,7 +52,7 @@ MarkingDetector::~MarkingDetector()
 void MarkingDetector::find(std::vector<Marking>& markings,
                            std::uint8_t low_sky_boundary)
 {
-    if (low_sky_boundary < STRIPSNUMBER)
+    if (low_sky_boundary < STRIPS_NUMBER)
     {
         for (size_t origin_strip = 0; origin_strip < low_sky_boundary; ++origin_strip)
         {
@@ -96,10 +97,92 @@ void MarkingDetector::find(std::vector<Marking>& markings,
                         bunch_is_found = false;
                     }
                 }
+                // Criteria
+                bool long_enough = marking.length() > 10;
+                bool straight_from_left = marking.left_curvature() < 15;
+                bool straight_from_right = marking.right_curvature() < 15;
 
-                if (marking.bunches.size() > 15) // todo: investigate
+                if (long_enough && straight_from_left && straight_from_right)
                     markings.push_back(marking);
             }
         }
     }
+}
+
+
+
+/*
+ * @Description:
+ *      Sum left deviations.
+ * @Return value:
+ *
+ */
+float Marking::left_curvature()
+{
+    std::uint8_t length = bunches.size();
+
+    float strip_width = IMAGE_HEIGHT / STRIPS_NUMBER;
+    if (length > 2)
+    {
+        float error = 0.0;
+        for (size_t i = 1; i < length-1; ++i)
+        {
+            float x1 = bunches[i-1].beg;
+            float x2 = bunches[i].beg;
+            float x3 = bunches[i+1].beg;
+
+            float y1 = (i-1) * strip_width + 0.5;
+            float y2 = (i) * strip_width + 0.5;
+            float y3 = (i+1) * strip_width + 0.5;
+
+            float scalar_product = (x1 - x2) * (x3 - x2) + (y3 - y2) * (y2 - y1);
+            float length_1 = std::sqrt((x1 - x2)*(x1 - x2) + (y2 - y1)*(y2 - y1));
+            float length_2 = std::sqrt((x3 - x2)*(x3 - x2) + (y3 - y2)*(y3 - y2));
+
+            float cos_angle = scalar_product / (length_1 * length_2);
+
+            error += (1 + cos_angle);
+        }
+        return error;
+    }
+    return 0;
+}
+
+
+
+/*
+ * @Description:
+ *      Sums 1+cos(xi), where xi -- angle between (xi-1, xi) and (xi, xi+1) vectors.
+ * @Return value:
+ *
+ */
+float Marking::right_curvature()
+{
+    std::uint8_t length = bunches.size();
+
+    float strip_width = IMAGE_HEIGHT / STRIPS_NUMBER;
+    if (length > 2)
+    {
+        float error = 0.0;
+        for (size_t i = 1; i < length-1; ++i)
+        {
+            float x1 = bunches[i-1].end;
+            float x2 = bunches[i].end;
+            float x3 = bunches[i+1].end;
+
+            float y1 = (i-1) * strip_width + 0.5;
+            float y2 = (i) * strip_width + 0.5;
+            float y3 = (i+1) * strip_width + 0.5;
+
+            float scalar_product = (x1 - x2) * (x3 - x2) + (y3 - y2) * (y2 - y1);
+            float length_1 = std::sqrt((x1 - x2)*(x1 - x2) + (y2 - y1)*(y2 - y1));
+            float length_2 = std::sqrt((x3 - x2)*(x3 - x2) + (y3 - y2)*(y3 - y2));
+
+            float cos_angle = scalar_product / (length_1 * length_2);
+
+            error += (1 + cos_angle);
+        }
+        return error;
+    }
+    return 0;
 }

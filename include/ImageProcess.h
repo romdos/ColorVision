@@ -31,14 +31,6 @@
 
 
 
-#define IMAGE_WIDTH 640
-#define IMAGE_HEIGHT 480
-
-#define HORIZONTAL 0
-#define VERTICAL 1
-
-
-
 
 
 

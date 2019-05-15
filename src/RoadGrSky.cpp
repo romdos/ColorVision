@@ -22,6 +22,11 @@
 #include <time.h>
 #include <algorithm>
 
+
+
+
+
+
 using namespace std;
 
 
@@ -42,15 +47,13 @@ static  int gray_zones[NUM_INTEN1] = {0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 2,
 static  int dev_mean[8] = {5, 8, 8, 10, 10, 10, 12, 8};
 static  int imp_dev_mean[8] = {14, 16, 18, 18, 16, 16, 14, 12};
 
-//////////////////////////////////////////////////////////////////////
 
-//=========================================================
 
-	int
 
-CImageProcess::MaximumGreenComp(int left_right)
-	{
-int prior;
+
+int CImageProcess::MaximumGreenComp(int left_right)
+{
+    int prior;
 		int first_section;
 		int last_section;
 		int last_fiber;
@@ -219,17 +222,16 @@ int prior;
 		}
 		return(prior);
 		}
-//=========================================================
-int
 
-CImageProcess::OpposGreenComponents(int left_right,int section_number)
+
+
+
+int CImageProcess::OpposGreenComponents(int left_right,int section_number)
 {
+    int section_beg;
+    int section_end;
 
-	int section_beg;
-		int section_end;
-		//int adj_section_beg;
-		//int adj_section_end;
-		int count_fiber;
+    int count_fiber;
 		int section_bunch;
 		int bunch_old_number;
 		int right_contrast;
@@ -242,8 +244,6 @@ CImageProcess::OpposGreenComponents(int left_right,int section_number)
 		int num_sect_right;
 		int beg_int;
 		int end_int;
-		//int section_trace_oppos;
-		//int reduced_section_number;
 		int number_of_bunches;
 		int number_of_bunches_prev;
 		int number_of_bunches_prev1;
@@ -253,11 +253,6 @@ CImageProcess::OpposGreenComponents(int left_right,int section_number)
 		int section_hue_zone;
 		int section_gray;
 		int section_weight;
-		//int adj_section_hue;
-		//int adj_section_sat;
-		//int adj_section_gray;
-	    //int adj_section_weight;
-		//int adj_total_weight;
 		int Intersection;
 	    int indic_length;
 	    int ratio_length;
@@ -269,8 +264,6 @@ CImageProcess::OpposGreenComponents(int left_right,int section_number)
 		int oppos_extreme_right_boundary_count;
 		int section_length;
 		int section_gray_zone;
-		//int adj_weight_ratio;
-		//int test_junction;
 		int prior;
 		int first_green_adjacent;
 		int last_green_adjacent;
@@ -794,12 +787,6 @@ CImageProcess::OpposGreenComponents(int left_right,int section_number)
 		 int sect_incline_local;//last_cor14.02.18
 		 int local_beg;
 		 int local_end;//last_cor14.02.18
-		//int green_adjacent_section_op_weight_normalized;
-		//int differ_next_new;
-		/*int old_first_n_green;
-		int	old_first_n_green_beg;
-		int	old_first_n_green_end;
-		int	old_first_n_green_length;*/
 		int* distance_to_green;
 		int* green_bunch_number;
 		int* adjacent_n_green_length;
@@ -1166,26 +1153,10 @@ CImageProcess::OpposGreenComponents(int left_right,int section_number)
 	section_last_bunch_length=section_last_bunch_end-section_last_bunch_beg+1;
 	if(left_right)
 	{//lr//last_cor16.11.16
-		/*if(UpperGreenBoundaryLeft>0)
-		{//!!!!16
-			if(section_beg>UpperGreenBoundaryLeft)
-			{
-				prior=-1;
-				goto M;
-			}
-		}*/
 	dist_to_frame_bound_last=DimX-section_first_bunch_end+1;
 	}//lr
 	else
 	{//elrlast_cor16.11.16
-		/*if(UpperGreenBoundaryRight>0)
-		{
-			if(section_beg>UpperGreenBoundaryRight)
-			{
-				prior=-1;
-				goto M;
-			}
-		}*/
 		dist_to_frame_bound_last=section_first_bunch_beg;//last_cor16.11.16
 if(UpperGreenBoundaryRight>0)
 		{//onlyublast_cor22.08.17
@@ -17799,11 +17770,10 @@ L:;
 *last_chain_last=chain_last;
 return(max_chain_number);
 }
-////////////////////////////////////////////////////////////////////////////////////
-int
 
-CImageProcess::StraightApproximation(int* array_elements,int* paint,int first_member,
-int last_member,int* reliability,int left_right)
+
+
+int CImageProcess::StraightApproximation(int* array_elements,int* paint,int first_member, int last_member,int* reliability,int left_right)
 {
 	int node_coord1;
 	int node_coord;
@@ -18131,15 +18101,16 @@ if(max_weight>=10)
 }
 }
 	}
-delete[] local_maxim_points;
+    delete[] local_maxim_points;
 	return(prior);
 }
-////////////////////////////////////////////////////////////////////////////////////
-int
 
-CImageProcess::SequenceOfChainsLongest(int sec_length,int sect_num,int number_of_chains,
-int* section_array,int* chains_prolongated,int* chain_first,int* chains_appropriate,
-int* first_prolong,int* max_length)
+
+
+
+int CImageProcess::SequenceOfChainsLongest(int sec_length,int sect_num,int number_of_chains,
+                                                        int* section_array,int* chains_prolongated,int* chain_first,int* chains_appropriate,
+                                                    int* first_prolong,int* max_length)
 {
 	int count_chain;
 	int chain_sequence_last;
@@ -18225,8 +18196,8 @@ sequence_optimal=count_chain;
   }
 
 }//chain_loop
-	*first_prolong=first_prolongated;
-    *max_length=maximum_chain_length;
-	return(sequence_optimal);
+	*first_prolong = first_prolongated;
+    *max_length = maximum_chain_length;
+	return (sequence_optimal);
 }
 

@@ -27,7 +27,7 @@ set(SOURCE_FILES
         include/BunchGray.h
         include/Geometry.h
         include/Strip.h
-        )
+        include/Config.h)
 
 add_executable(ColorVision2 ${SOURCE_FILES})
 

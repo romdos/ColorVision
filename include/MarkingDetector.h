@@ -1,4 +1,5 @@
 /*
+        float W = bunches[0].
  * Finds road
  *
  *
@@ -26,6 +27,11 @@ public:
     Marking();
     ~Marking();
     std::vector<GrayBunch> bunches;       // chain of bunches which is candidate for road marking
+public:
+    std::uint8_t length() {return bunches.size();}
+    float left_curvature();
+    float right_curvature();
+
 };
 
 
@@ -43,6 +49,7 @@ public:
 
     void find(std::vector<Marking>& markings,
                 std::uint8_t low_sky_boundary);
+
 };
 
 

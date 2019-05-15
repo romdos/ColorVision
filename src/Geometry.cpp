@@ -15,10 +15,10 @@
 *  @Description:
 *	   Analyses intersection between 2 segments: s1 and s2.
 *  @Parameters:
-*      intersection_ratio_1 = intersection / first_interval_length;
-*      intersection_ratio_2 = intersection / second_interval_length;
-*	   if intervals are not intersecting, intersection_ratio_1 == distance between intervals
-*	   and intersection_ratio_2 == 0.
+*      Ratio1 = intersection / first_interval_length;
+*      Ratio2 = intersection / second_interval_length;
+*	   if intervals are not intersecting, Ratio1 == distance between intervals
+*	   and Ratio2 == 0.
 *  @Return value: 
 *	   0 - if intersection length is more than a half of a big interval, 
 *	   1 - if intersection length is more than a half of a small interval, 
@@ -67,24 +67,4 @@ std::uint8_t measure_intersection(Segment& s1, Segment& s2,
 			}
 		}
 	}
-}
-
-
-
-/*
- * @Description:
- * 		Checks whether two segments are intersected or not.
- * @Parameters:
- *      s1 - first segment,
- *      s2 - second segment.
- * @Return value:
- *      0 -- segments s1 and s2 are not intersected,
- *      1 -- otherwise.
- * @Note:
- *      todo: make measure of intersection.
- */
-bool intersected(Segment& s1, Segment& s2)
-{
-	bool result = (s2.beg >= s1.beg && s2.beg <= s1.end) || (s2.end >= s1.beg && s2.beg <= s1.beg);
-	return result;
 }

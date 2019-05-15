@@ -23,28 +23,11 @@
 // for std types
 #include <cstdint>
 
+#include "Config.h"
 #include "Segment.h"
 #include "Geometry.h"
 
 
-
-
-
-#define PRESSING 1
-#define NUM_INTEN 136
-#define NUM_INTEN1 64
-
-#define STRIPSNUMBER  48
-
-#define MAX_INT_NUMBER 32
-#define MAX_COL_INT 96
-#define MAX_COLLESS_INT 64
-
-#define NUM_GRAINS 16
-#define NUM_SECT 64
-
-#define NUM_SECT1 256
-#define NUM_HUES 48
 
 
 

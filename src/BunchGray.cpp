@@ -1946,6 +1946,7 @@ int CBunchGray::FindingIntervalsWithAdjacent(int last_member,
  *              0 -- otherwise.
  *  @Notes:
  *  	todo: make convenient and efficient indexation -> (intens, interv) (e.g. B-tree).
+ *  	    find more efficient algorithm.
 */
 std::int8_t CBunchGray::find_bursts(std::uint16_t max_length,
                                     std::uint8_t depth)

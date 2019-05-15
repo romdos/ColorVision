@@ -38,7 +38,5 @@ std::uint8_t measure_intersection(Segment& s1,
 
 
 
-bool intersected(Segment& s1, Segment& s2);
-
 
 #endif
