@@ -1,5 +1,5 @@
 /*
- *
+ * Contains segmentation function.
  *
  *
  *
@@ -1041,7 +1041,8 @@ void CImageProcess::segment(cv::Mat& frame,
 
 		CurStrip[i].Loc_stat_geom_double(GGBorGGR);
 
-        GrayBunches[i].find_bursts(2 * StripWidth, 5);
+		std::uint8_t bunch_max_length = 1 * StripWidth;
+        GrayBunches[i].find_bursts(bunch_max_length, 5);
 
 		if (VideoCameraIsLoaded)
 		{
@@ -1051,9 +1052,9 @@ void CImageProcess::segment(cv::Mat& frame,
 			if (frame_count > 1)
 			{
 				memset(IntegratedColorBunchesCharacteristics[i + NumStrips * RedNumberOfCurrentFrame].length_of_trajectory,
-						(int) '\0', sizeof(int) * (MAX_COL_INT));
+						(int) '\0', sizeof(int) * MAX_COL_INT);
 				memset(IntegratedColorBunchesCharacteristics[i + NumStrips * RedNumberOfCurrentFrame].right_length_of_trajectory,
-						(int) '\0', sizeof(int) * (MAX_COL_INT));
+						(int) '\0', sizeof(int) * MAX_COL_INT);
 			}
 		}
 		else
@@ -14657,8 +14658,8 @@ CMotion::~CMotion(void) {
  */
 void CImageProcess::draw_markings(cv::Mat& image, std::vector<Marking>& markings)
 {
-    cv::Scalar color(250, 180, 30);     // color of line
-    int thickness = 2;  // thickness of line
+    cv::Scalar color(40, 40, 250);     // color of line
+    int thickness = 2;                 // thickness of line
 
     for (auto& marking: markings)
     {

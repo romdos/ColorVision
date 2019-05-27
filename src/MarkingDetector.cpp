@@ -11,6 +11,7 @@
 
 
 #include <cmath>
+#include <iostream>
 #include "MarkingDetector.h"
 
 
@@ -33,10 +34,7 @@ MarkingDetector::MarkingDetector()
 
 
 MarkingDetector::~MarkingDetector()
-{
-}
-
-
+{}
 
 
 
@@ -62,12 +60,12 @@ void MarkingDetector::find(std::vector<Marking>& markings,
                     continue;
 
                 std::uint8_t strip_number = seed.stripNumber;
-
                 GrayBunch next_bunch = seed;
                 Marking	marking;
 
                 bool bunch_is_found = true;
-                while (bunch_is_found)
+                std::uint8_t length = 0;
+                while (bunch_is_found && (length < 6))
                 {
                     ++strip_number;
                     if (strip_number >= low_sky_boundary)
@@ -83,7 +81,7 @@ void MarkingDetector::find(std::vector<Marking>& markings,
 
                         std::uint16_t r1, r2; // useless, only for measure_intersection
                         // todo: adjust thresholds
-                        bool bunches_intersected = measure_intersection(s1, s2, &r1, &r2) <= 1;
+                        bool bunches_intersected = measure_intersection(s1, s2, &r1, &r2) <= 2;
                         bool similar = std::abs(candidate.intens - next_bunch.intens) <= 5;
 
                         if (bunches_intersected && similar)
@@ -98,11 +96,11 @@ void MarkingDetector::find(std::vector<Marking>& markings,
                     }
                 }
                 // Criteria
-                bool long_enough = marking.length() > 10;
-                bool straight_from_left = marking.left_curvature() < 15;
-                bool straight_from_right = marking.right_curvature() < 15;
+                bool long_enough = marking.length() > 4;
+                //bool straight_from_left = marking.left_curvature() < 2;
+                //bool straight_from_right = marking.right_curvature() < 2;
 
-                if (long_enough && straight_from_left && straight_from_right)
+                if (long_enough)// && straight_from_left && straight_from_right)
                     markings.push_back(marking);
             }
         }

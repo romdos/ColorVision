@@ -1,8 +1,8 @@
 /*
- *  Starts a program. Runs a main segmentation function.
- *  Finds a road marking line.
- *
- *
+ *  Starts a program. Opens video stream and calls a main segmentation function for each frame.
+ *  Finds a road marking lines and pushes them to <markings> list.
+ *  Draws results (markings).
+ *  Records video with drawn results.
  *
  *
  *
@@ -23,25 +23,33 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    std::string video_path = argv[1];    // "/home/roman/Videos/caltech-lanes/cordova1/f%05d.png"
+    CImageProcess vision;
+    MarkingDetector marking_detector;
+
+    std::string video_path = "/home/roman/Pictures/caltech-lanes/cordova1/f%05d.png";
     std::string window_name = "Source";
 
     cv::namedWindow(window_name, cv::WINDOW_AUTOSIZE);
     cv::moveWindow(window_name, 0, 0);
 
-    cv::VideoCapture cap(argv[1]);
+    cv::VideoCapture cap(video_path);
     if (!cap.isOpened())
     {
         printf("Can't open video file.");
         return -1;
     }
 
-    CImageProcess vision;
-    MarkingDetector marking_detector;
-
     cv::Size size(IMAGE_WIDTH, IMAGE_HEIGHT);
-    cv::Mat frame;
-    cv::Mat resized_fr; // todo: define as zeros with size and type
+    cv::Mat frame, resized_fr; // todo: define as zeros with size and type
+
+    cv::VideoWriter video_writer("/home/roman/Videos/Processed/processed_video.avi", cv::VideoWriter::fourcc('M', 'J', 'P', 'G'), 30, size, true);
+
+    if (video_writer.isOpened() == false)
+    {
+        std::cout << "Cannot save the video to a file" << std::endl;
+        std::cin.get(); //wait for any key press
+        return -1;
+    }
 
     for (size_t fr_number = 0; ; ++fr_number)
     {
@@ -55,16 +63,18 @@ int main(int argc, char* argv[])
         vision.segment(resized_fr, fr_number);
 
         std::vector<Marking> markings;
+
         marking_detector.strips = vision.GrayBunches;
         marking_detector.find(markings, vision.LowerSkyFiber);
 
-        std::cout << vision.LowerSkyFiber << std::endl;
-
         vision.draw_markings(resized_fr, markings);
 
-        cv::imshow(window_name, resized_fr);
+        video_writer.write(resized_fr);
 
+        cv::imshow(window_name, resized_fr);
         cv::waitKey(3);
     }
+
+    video_writer.release();
 }
 

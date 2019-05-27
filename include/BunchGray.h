@@ -174,7 +174,11 @@ public:
     std::int8_t find_bursts(std::uint16_t max_length,
                             std::uint8_t depth);
 
+    std::int8_t find_bursts2(std::uint16_t max_length,
+                             std::uint8_t depth);
 };
+
+
 
 
 #endif
