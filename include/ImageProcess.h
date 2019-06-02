@@ -22,11 +22,20 @@
 
 
 #include "Strip.h"
+
+
+
 #include "ColorIntervalSelect.h"
+
+
+
+
 #include "ColorSection.h"
+
+
+
+
 #include "MarkingDetector.h"
-
-
 
 
 
@@ -384,43 +393,25 @@ int bunch_lower_saturation,int bunch_upper_saturation);
 
 	 VerticalConnectedToBoundary(void);
 
-	 void
+	 void RoadComponents(void);
 
-	 RoadComponents(void);
-
-	 int
-
-	 VerticalComponentsInBoundary(int section_number,int* ends_coordinates,
+	 int VerticalComponentsInBoundary(int section_number,int* ends_coordinates,
 	 int* verticl_parts,int sign);
 
-	 int
-
-	 NextSection(int bunch_number,int strip_number,int* next_beg,int* next_end);
+	 int NextSection(int bunch_number,int strip_number,int* next_beg,int* next_end);
 
 
-	 int
+	 int FindSignalZones(void);
 
-	 FindSignalZones(void);
+	 int VerticalLinesConstruct(void);
 
-	 int
+	 int VerticalLinePassing(int count_bun,int next_str,int first_cl,int first_end,int v_line_number);
 
-	 VerticalLinesConstruct(void);
+	 int ConnectedVerticalLines(void);
 
-	 int
+	 int IntersectingVerticalLines(void);
 
-	 VerticalLinePassing(int count_bun,int next_str,int first_cl,int first_end,int v_line_number);
-
-	 int
-
-	 ConnectedVerticalLines(void);
-
-	 int
-
-	 IntersectingVerticalLines(void);
-
-	 int
-
-	 BreakingVerticalLines(void);
+	 int BreakingVerticalLines(void);
 
 	 int VerticalLinesSignalsConnected(void);
 

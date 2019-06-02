@@ -1,6 +1,5 @@
 /*
-        float W = bunches[0].
- * Finds road
+ * Finds road marking
  *
  *
  *
@@ -14,7 +13,7 @@
 #define COLORVISION_START_MARKINGDETECTOR_H
 
 
-#include <cstdint>
+
 
 #include "BunchGray.h"
 

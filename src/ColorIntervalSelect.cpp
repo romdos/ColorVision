@@ -22,7 +22,6 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include <algorithm>
 
 
 
@@ -47,18 +46,8 @@ static  int gray_zones[NUM_INTEN1] = {0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2,
 5, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7};
 static  int dev_hue_zone[6] = {2, 2, 2, 2, 2, 2};
 
-//////////////////////////////////////////////////////////////////////
-// Construction/Destruction
-//////////////////////////////////////////////////////////////////////
-
-TIntColor::TIntColor()
-{
-
-}
 
 
-
-//=====================================================
 TIntColor::~TIntColor()
 {
 	delete[] NumberOfColorBunch;
@@ -74,7 +63,8 @@ TIntColor::~TIntColor()
 	delete[] TypeOfColor;
 
 }
-//=====================================================
+
+
 
 CColorIntervalSelect::CColorIntervalSelect()
 {

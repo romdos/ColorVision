@@ -3,10 +3,16 @@
  *
  */
 
+
+
+
+
 #ifndef COLORVISION2_SEGMENT_H
 #define COLORVISION2_SEGMENT_H
 
 
+
+// For redefinition basic types (int, char etc.)
 #include <cstdint>
 
 
@@ -17,7 +23,8 @@ public:
             std::int16_t end);
 	~Segment();
 
-    std::int16_t beg, end;
+    std::int16_t beg;
+    std::int16_t end;
 
     std::uint16_t length() {return end - beg + 1;}
 };

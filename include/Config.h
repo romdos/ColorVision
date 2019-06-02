@@ -2,6 +2,12 @@
 // Created by roman on 14.05.19.
 //
 
+
+
+
+
+
+
 #ifndef COLORVISION_CONFIG_H
 #define COLORVISION_CONFIG_H
 
@@ -43,6 +49,15 @@
 #define NUM_HUES 48
 
 
+
+#define RED_COEF    0.3  // 0.299
+#define GREEN_COEF  0.59  // 0.587
+#define BLUE_COEF   0.11  // 0.114
+
+#define LOW_INTENSITY 12
+#define LOW_INTENSITY1 33
+#define LOW_INTENSITY2 46
+#define LOW_INTENSITY3 23
 
 
 #endif //COLORVISION_CONFIG_H

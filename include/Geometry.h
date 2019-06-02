@@ -1,5 +1,5 @@
 /*
- * Useful functions for intermediate results.
+ * Segments intersection measure and other useful functions.
  *
  *
  *
@@ -11,18 +11,24 @@
 
 
 
-#ifndef METRICS_H
-#define METRICS_H
+#ifndef GEOMETRY_H
+#define GEOMETRY_H
 
 
 
-// for max/min
+// Min and Max functions are contained here
 #include <algorithm>
 
 // for abs
 #include <cstdlib>
 
-// todo: make namespace
+
+
+/*
+ * Geometrized histogram operates with segments.
+ * So, it is reasonably to make corresponding class.
+ *
+ */
 #include "Segment.h"
 
 

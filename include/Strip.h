@@ -1,5 +1,6 @@
 /*
- *
+ * Separate strip in an image. Contains all necessary data and methods
+ * for building Geometrized Histogram.
  *
  *
  *
@@ -19,23 +20,36 @@
 
 
 
+/*
+ *  For use of memset() function.
+ *  Note: in the future it will be removed.
+ *
+ */
+#include <cstring>
 
-// for std types
-#include <cstdint>
 
+
+/*
+ * Pre-build parameters: image size, number of strips and etc.
+ *
+ *
+ */
 #include "Config.h"
-#include "Segment.h"
+
+
+
+/*
+ *  Segments.
+ *
+ *
+ */
 #include "Geometry.h"
-
-
-
 
 
 
 
 struct TIntCharact
 {
-public:
 	int MaxSize;
 	int num_of_int; // the total number of intervals in the structure
 	int *BegInt; // pointer to the beginning  of the current interval
@@ -74,25 +88,25 @@ public:
 
 struct TIntCharactGray
 {
-public:
 	int MaxSize;
 	int num_of_int; // the total number of intervals in the structure
 	int *BegInt; // pointer to the beginning  of the current interval
 	int *EndInt; // pointer to the end  of the current interval
 	int *Signif; // significance (cardinality) of the current interval
-public:
+
 	TIntCharactGray();
 	~TIntCharactGray();
 };
 
 
 
-struct TIntColor //This structure describes the colored intervals of strips
+//This structure describes the colored intervals of strips
+struct TIntColor
 {
-public:
-	~TIntColor();
-	TIntColor();
+    ~TIntColor();
+
 	int num_of_int; // the total number of intervals in the structure
+
 	int* NumberOfColorBunch; // pointer to the number of the color bunch
 	int* PosPeakHue; //the hue corresponding to the positive peak
 	int* TotCMHue;
@@ -226,17 +240,27 @@ class CStrip
 {
 public:
 	CStrip();
-	virtual ~CStrip();
+	~CStrip();
 
 public:
 	int num_strip; // number of the strip
+
 	int StripWidth; // width of a strip in pixels
+    int StripLength; // todo: delete because it is the image width
+
 	int StripWidthPrev; // width of the preceding strip
-	int HorizontalVertical;
+
+	// Image data
+    std::uint8_t* intensi;
+
+    int HorizontalVertical;
+
 	bool GGBorGGR;
+
 	int PressedLength;
-	int StripLength;
+
 	int NumLevels; // number of values each pixel can take (e.g. 256)
+
 	int NumbStr; //number of strips
 	int Feature;
 	int BitPerP;
@@ -256,8 +280,6 @@ public:
 
 	int left_bound_of_color_resolution;
 	int right_bound_of_color_resolution;
-
-	std::uint8_t *intensi;
 
 	//beginning parameters for analysis of a color ratio image
 	int *hist_fun; // number of lines where pixels of a particular intensity occur
@@ -312,11 +334,14 @@ public:
 	TIntCharact* IntAllInform; // Rough preliminary description of strip's geometry of
 	// intensity destribution for the G/(G +B) component
 
-	//parameters for analysis of a grayscale image
-	int *hist_fung; // number of lines where pixels of a particular intensity occur
-	int *hist_sumg; // the value of the histogram function
+	/* Arrays, where each element corresponds to intensity, i.e. end_pointg[intens] = coord etc. */
+
+    // number of lines where pixels of a particular intensity occur
+    int *hist_fung;
+    // the value of the histogram function
+    int *hist_sumg;
+
 	int *num_of_intg;
-	int *beg_pointg; // the beginning of lines  of fixed intensity
 	int *end_pointg; // the end of lines  of fixed intensity
 	int *thick_begg; //the beginning of the current interval
 	int *thick_endg; //the end of the current interval
@@ -340,19 +365,23 @@ public:
 	int* intensities_occurredg;// array that describes the intensities at the
 	//particular point of the vertical axis
 	int* interval_occurredg;
-	int* quantity_of_intensitiesg;//rough texture characteristic;
+
+    // Quantity of grayscale intensities at each point
+	int* quantity_of_intensitiesg;
+
+
+
 	int* intervals_occurredg;
 	int* valuable_intervalg; //the best visible intervals of intensities.
 
-	TIntCharactGray* IntAllInformGray;// Rough preliminary description of strip's geometry of
-	// intensity destribution for the grayscale component
+	// Rough preliminary description of strip's geometry of
+    // intensity destribution for the grayscale component
+	TIntCharactGray* IntAllInformGray;
 
-	unsigned int* signif_value; //Consistience of the intensity
-	//Loc_stat_geom_double(int NumPair,int* frequency_of_color_differ);
+	/* Functions */
+
 	void Loc_stat_geom_double(bool NumPair);
-	// scans the strip and fills in the array AllIntens
 
-public:
 	void Important_interval(int begin_interval, int end_interval, int min_val, int max_val, float mean_val, int min_opponent1,
 					int max_opponent1, float mean_opponent1, std::uint8_t intensi, int signi, int* thick_be, int* thick_en,
 					int* num_of_in, int* thick_sta, int* hist_fu, int* hist_su, int* thick_stat_inpu, int* thick_prev_be,
@@ -371,9 +400,12 @@ public:
 				int* thick_prev_sta, int* thick_break_be, int* thick_break_en,
 				int* thick_break_sta, int Coun, int color_balance,int saturation);
 
-	void StripCharacteristicsFindingGray(std::uint8_t inten, int coor1, int* first_pi, int* last_pi, int* last_en);
+	void StripCharacteristicsFindingGray(std::uint8_t inten,
+                                         std::uint16_t coord,
+                                         std::uint16_t* last_pi,
+                                         int* last_en);
 
-	void FinalCorrectionGray(int* last_en);
+    void FinalCorrectionGray();
 
 	void FinalCorrection(int* thick_las, int* gray_mi, int* gray_ma, float* gray_mea, int *mratio_min, int *mratio_max,
 			float *mratio_mean, int* thick_be, int* thick_en, int* import_be, int* import_en, int* thick_break_be,
@@ -386,7 +418,14 @@ public:
 
 	void Important_interval1(int begin_interval, int end_interval, std::uint8_t intensi, int signi);
 
-	void Strip_value_painting1(std::uint8_t intens, int beg_int, int end_int, int intens_consist);
+    void Strip_value_painting1(std::uint8_t intens,
+                                std::int16_t beg, std::int16_t end,
+                                int consistency);
+
 };
+
+
+
+
 
 #endif

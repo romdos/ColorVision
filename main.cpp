@@ -65,6 +65,7 @@ int main(int argc, char* argv[])
         std::vector<Marking> markings;
 
         marking_detector.strips = vision.GrayBunches;
+        std::cout << vision.LowerSkyFiber << std::endl;
         marking_detector.find(markings, vision.LowerSkyFiber);
 
         vision.draw_markings(resized_fr, markings);

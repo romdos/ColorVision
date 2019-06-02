@@ -845,7 +845,6 @@ void CImageProcess::InitialConstructions()
 		CurStrip[i].hist_fung = new int[NUM_INTEN1];
 		CurStrip[i].hist_sumg = new int[NUM_INTEN1];
 		CurStrip[i].num_of_intg = new int[NUM_INTEN1];
-		CurStrip[i].beg_pointg = new int[NUM_INTEN1];
 		CurStrip[i].end_pointg = new int[NUM_INTEN1];
 		CurStrip[i].thick_begg = new int[NUM_INTEN1];
 		CurStrip[i].thick_endg = new int[NUM_INTEN1];

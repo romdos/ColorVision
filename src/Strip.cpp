@@ -10,23 +10,10 @@
 
 
 
-#include <algorithm>
-// for memset()
-#include <cstring>
-
 
 #include "Strip.h"
 
 
-
-#define RED_COEF    0.3  // 0.299
-#define GREEN_COEF  0.59  // 0.587
-#define BLUE_COEF   0.11  // 0.114
-
-#define LOW_INTENSITY 12
-#define LOW_INTENSITY1 33
-#define LOW_INTENSITY2 46
-#define LOW_INTENSITY3 23
 
 
 
@@ -58,7 +45,8 @@ CStrip::CStrip()
 
 
 
-CStrip::~CStrip() {
+CStrip::~CStrip()
+{
 	delete[] hist_fun;
 	delete[] hist_sum;
 	delete[] num_of_int;
@@ -100,7 +88,6 @@ CStrip::~CStrip() {
 	delete[] hist_fung;
 	delete[] hist_sumg;
 	delete[] num_of_intg;
-	delete[] beg_pointg;
 	delete[] end_pointg;
 	delete[] thick_begg;
 	delete[] thick_endg;
@@ -132,31 +119,49 @@ CStrip::~CStrip() {
 
 
 
-
+/*
+ * @Description:
+ *      Runs over pixels and projects them onto middle line.
+ * @Parameters:
+ *      NumPair -- ??? todo
+ *
+ */
 void CStrip::Loc_stat_geom_double(bool NumPair)
 {
+
+
 	int ncoor2;
 	int con_Dim;
+
 	long point_start;
+
 	register int ncoor1;
 
-	std::uint8_t inten_red, inten_green, inten_blue;
+	std::uint8_t inten_red;
+    std::uint8_t inten_green;
+    std::uint8_t inten_blue;
+
+    int gray_scale;
 
 	int max_intensity;
 	int min_intensity;
 
-	int gray_scale;
 	std::uint8_t inten_opponent1;
+
 	int actual_inten_opponent1;
+
 	int interm;
 	long int entry_point;
 
-	int last_end[NUM_INTEN];
+	int last_end[NUM_INTEN] = {0};
+
 	int first_pix[NUM_INTEN];
 	int last_pix[NUM_INTEN];
-	int last_endg[NUM_INTEN1];
-	int first_pixg[NUM_INTEN1];
-	int last_pixg[NUM_INTEN1];
+
+	int last_endg[NUM_INTEN1] = {0};
+
+	// last (outermost right) positions of gray intensities in an image
+	std::uint16_t last_pixg[NUM_INTEN1];
 
 	int* frequency_of_color_differ;
 	int* inten_count1;
@@ -166,8 +171,6 @@ void CStrip::Loc_stat_geom_double(bool NumPair)
 	float satur;
 	int incr1, incr2;
 	int residual;
-	int scale_pos;//last_cor02.04.15
-	int res_scale_pos;
 	int redgreen;
     int redblue;
     int randg;
@@ -175,69 +178,74 @@ void CStrip::Loc_stat_geom_double(bool NumPair)
     int actual_strip_number;
     int point_sat;
 
-	scale_pos=0;
-	res_scale_pos=0;
+	int scale_pos = 0;
+	int res_scale_pos = 0;
 
 	frequency_of_color_differ = new int[NUM_INTEN*(DimDifference1)];
-	memset(last_end,(int) '\0',sizeof(int)*NUM_INTEN);
-	memset(last_endg,(int) '\0',sizeof(int)*NUM_INTEN1);
 
-	con_Dim=(3*DimX+Cor_Width);
-	 if(HorizontalVertical==0)
-					{
-if(Feature==1)
-{
-	actual_strip_number=num_strip;
-}
-else
-{
-	if(!Feature)
+	con_Dim = 3 * DimX + Cor_Width;
+
+	if (HorizontalVertical == HORIZONTAL)
 	{
-		actual_strip_number=NumbStr-1-num_strip;
-	}
-	else
-	{
-		actual_strip_number=num_strip;
-	}
-}
-		 point_start=((long)con_Dim)*(long)(StripWidthPrev*(actual_strip_number));
+        if (Feature == 1)
+        {
+            actual_strip_number = num_strip;
+        }
+        else
+        {
+            if (!Feature)
+            {
+                actual_strip_number = NumbStr - 1 - num_strip;
+            }
+            else
+            {
+                actual_strip_number=num_strip;
+            }
+        }
 
-		 for(ncoor2=0;ncoor2<DimX;ncoor2++)
-		 {
-		 entry_point=(long)(3*ncoor2)+point_start;
+        point_start = ((long)con_Dim)*(long)(StripWidthPrev*(actual_strip_number));
 
+        for (size_t x = 0; x < DimX; x++)
+        {
+            entry_point = (long)(3*x) + point_start;
 
-		 	for(ncoor1=0;ncoor1<StripWidth;ncoor1++)
-		  {
+		 	for (ncoor1 = 0; ncoor1 < StripWidth; ncoor1++)
+		    {
+		 	    inten_blue = *(intensi+entry_point++);
+		        inten_green = *(intensi+entry_point++);
+		        inten_red = *(intensi+entry_point);
 
-		      inten_blue=*(intensi+entry_point++);
-		      inten_green=*(intensi+entry_point++);
-		      inten_red=*(intensi+entry_point);
+		        max_intensity = std::max(inten_blue,std::max(inten_green,inten_red));
+		        min_intensity = std::min(inten_blue,std::min(inten_green,inten_red));
 
-		  max_intensity=std::max(inten_blue,std::max(inten_green,inten_red));
-		  min_intensity=std::min(inten_blue,std::min(inten_green,inten_red));
-		  satur=((float)(max_intensity-min_intensity)/((float) max_intensity));
-		  point_sat = (int)(15 * satur);
-		  entry_point=entry_point+con_Dim-2;
-		  gray_scale=BLUE_COEF*inten_blue+GREEN_COEF*inten_green+RED_COEF*inten_red;
-		 	  gray_scale=gray_scale >> 2;
-		 	  scale_pos=gray_scale/4;//last_cor02.04.15
-		 res_scale_pos=gray_scale%4;
-		 if(res_scale_pos>=2)
-		 {
-		 	if(scale_pos<15)
-		 	{
-		 scale_pos+=1;
-		 	}
-		 }
-		 	  if (num_of_intg[gray_scale]<MAX_INT_NUMBER-1)
-		      {
-		        StripCharacteristicsFindingGray(gray_scale,ncoor2,first_pixg,last_pixg,last_endg);
-		 	  }
-		 	 if ((max_intensity>=LOW_INTENSITY) || ((gray_scale<=3)&&(inten_blue<=6)))
-		 	 {//11
-		 		                 if(NumPair)
-		 		                 {//7
+		        satur = ((float)(max_intensity-min_intensity)/((float) max_intensity));
+		        point_sat = (int)(15 * satur);
+
+		        entry_point += (con_Dim-2);
+
+		        gray_scale = BLUE_COEF*inten_blue+GREEN_COEF*inten_green+RED_COEF*inten_red;
+		 	    gray_scale = gray_scale >> 2;
+
+		 	    scale_pos = gray_scale / 4;//last_cor02.04.15
+		        res_scale_pos = gray_scale % 4;
+
+		        if (res_scale_pos >= 2)
+		        {
+		 	        if (scale_pos < 15)
+		 	        {
+		                scale_pos += 1;
+		 	        }
+		        }
+
+		        if (num_of_intg[gray_scale] < MAX_INT_NUMBER-1)
+		        {
+		            StripCharacteristicsFindingGray(gray_scale, x, last_pixg, last_endg);
+		 	    }
+
+		        if ((max_intensity >= LOW_INTENSITY) || ((gray_scale <= 3) && (inten_blue <= 6)))
+		 	    {//11
+                    if(NumPair)
+                    {//7
 		 //two coordinate systems G/(G+B), G/(G+R) and G/(G+B), R/(R+B) are imployed
 		 //the first coordinate system is used for the points where G/(G+B)>0.5, the second one, for the points where G/(G+B)<=0.5
 		 							 if (inten_blue + inten_green != 0)
@@ -301,11 +309,6 @@ else
 		 											 }
 		 										 }
 		 									 }
-		 									 /*if((inten_opponent1>24)&&(inten_opponent1<30)&&(num_strip==18))
-		 									 {
-		 									 fine_color_balance+=1;
-		 									 fine_color_balance-=1;
-		 									 }*/
 		 									 //in this half-triangle this function is determined everywhere
 		 								 }
 		 								 else
@@ -350,15 +353,6 @@ else
 		 									 goto L;
 		 								 }
 		 							 }
-		 							 /*if((inten_opponent1>42)&&((inten_opponent1%2)==1))
-		 							 {
-		 							 inten_opponent1=inten_opponent1+1;
-		 							 }*/
-		 							 /*if ((num_strip == 29) && (ncoor2>320))
-		 							 {//test26.02.18
-		 								 inten_opponent1+ = 1;
-		 								 inten_opponent1-=1;
-		 							 }*/
 		 							 if (((gray_scale <= 5) && (abs(fine_color_balance - inten_opponent1) <= 2) &&
 		 								 (satur<0.26)) || (gray_scale <= 3) || ((gray_scale <= 4) && (satur<0.5)))
 		 							 {//last_cor31.01.18
@@ -384,7 +378,7 @@ else
 		 									 goto L;
 		 								 }
 		 							 }
-		 							 if (inten_opponent1>left_bound_of_color_resolution)
+		 							 if (inten_opponent1 > left_bound_of_color_resolution)
 		 							 {//6
 		 								 if (inten_opponent1<32)
 		 								 {//5
@@ -401,21 +395,6 @@ else
 		 											 inten_opponent1 = graygrades2[scale_pos];
 		 											 goto L;
 		 										 }
-		 										 /*else
-		 										 {
-		 										 if((abs(fine_color_balance-31)<=3)&&(abs(inten_opponent1-31)<=3)&&(gray_scale<=20))
-		 										 {
-		 										 actual_inten_opponent1=(int)inten_opponent1;
-		 										 inten_opponent1=graygrades[gray_scale/4];
-		 										 goto L;
-		 										 }
-		 										 }*/
-		 										 /*if((abs(inten_opponent1-31)<=3)&&((gray_scale>=50)||(gray_scale<16))&&(satur<0.3))
-		 										 {
-		 										 actual_inten_opponent1=(int)inten_opponent1;
-		 										 inten_opponent1=graygrades[gray_scale/4];
-		 										 goto L;
-		 										 }*/
 		 										 actual_inten_opponent1 = inten_opponent1;
 		 										 inten_opponent1 = inten_opponent1 + 49;
 		 										 goto L;
@@ -428,13 +407,7 @@ else
 		 										 {//00 the left part of triangle2
 		 										  //blue, cyan, negative, except for colorless
 		 										  //introduction of gray shades and the white shade
-		 										  /*if(((gray_scale>=62)||(gray_scale<10))&&(abs(fine_color_balance-31)<7)&&(abs(inten_opponent1-31)<7))
-		 										  {//last_cor03.04.15//last_cor06.02.18
-		 										  actual_inten_opponent1=(int)inten_opponent1;
-		 										  inten_opponent1=graygrades2[scale_pos];
-		 										  //inten_opponent1=135;
-		 										  goto L;
-		 										  }*/
+
 		 											 if ((abs(fine_color_balance - 31)<2) && (abs(inten_opponent1 - 31)<2) && (satur<0.05) &&
 		 												 (gray_scale <= 30))
 		 											 {//last_cor03.04.15
@@ -451,20 +424,6 @@ else
 		 													 inten_opponent1 = graygrades[scale_pos];
 		 													 goto L;
 		 												 }
-		 												 /*else
-		 												 {//last_cor13.06.13
-		 												 if((fine_color_balance<30)&&(inten_opponent1<=30)&&(gray_scale<=8))
-		 												 {//last_cor02.04.15
-		 												 actual_inten_opponent1=(int)inten_opponent1;
-		 												 inten_opponent1=graygrades[scale_pos];
-		 												 if(inten_opponent1==135)
-		 												 {//last_cor02.04.15
-		 												 actual_inten_opponent1=31;
-		 												 fine_color_balance=31;
-		 												 }
-		 												 goto L;
-		 												 }
-		 												 }//last_cor13.06.13*/
 		 											 }
 		 											 if ((fine_color_balance <= 10) && (abs(inten_opponent1 - 31)<2) && (gray_scale >= 60) && (satur<0.05))
 		 											 {//last_cor03.04.15last_cor26.02.18
@@ -472,17 +431,10 @@ else
 		 												 inten_opponent1 = graygrades2[scale_pos];
 		 												 goto L;
 		 											 }
-		 											 /*if((abs(inten_opponent1-31)<2)&&(gray_scale<=40)&&(satur<0.4))
-		 											 {//last_cor28.05.15
-		 											 actual_inten_opponent1=(int)inten_opponent1;
-		 											 inten_opponent1=graygrades2[scale_pos];
-		 											 goto L;
-		 											 }*/
 		 											 actual_inten_opponent1 = inten_opponent1;
 		 											 inten_opponent1 = inten_opponent1 + 39;
 		 											 //blue, cyan, only negative
 		 										 }//00
-
 		 										 else
 		 										 {//3
 		 										  //blue, violet without change within the chosen range (22-31); negative and zero
@@ -500,35 +452,24 @@ else
 		 												 inten_opponent1 = graygrades2[scale_pos];
 		 												 goto L;
 		 											 }
-		 											 /*else
-		 											 {
-		 											 if((abs(fine_color_balance-31)<=3)&&(abs(inten_opponent1-31)<=3)&&(gray_scale<=20))
-		 											 {
-		 											 actual_inten_opponent1=(int)inten_opponent1;
-		 											 inten_opponent1=graygrades[gray_scale/4];
-		 											 goto L;
-		 											 }
-		 											 }*/
 		 											 actual_inten_opponent1 = inten_opponent1;
 		 											 goto L;
 		 										 }//3
-
 		 									 }//4
 		 								 }//5
 		 								 else
 		 								 {//8
-		 									 if ((inten_opponent1>42) && ((inten_opponent1 % 2) == 1))
+		 									 if ((inten_opponent1 > 42) && ((inten_opponent1 % 2) == 1))
 		 									 {
 		 										 inten_opponent1 = inten_opponent1 + 1;
 		 									 }
-		 									 if (inten_opponent1<right_bound_of_color_resolution)
+		 									 if (inten_opponent1 < right_bound_of_color_resolution)
 		 									 {//9
-
 		 										 incr2 = inten_opponent1 - 32;
 		 										 if (fine_color_balance <= 31 - right_shift2[incr2])
 		 										 {//the left part of triangle1
 		 										  //red, orange; nonstandard division oriented to natural scenes, only negative
-		 											 if ((abs(fine_color_balance - 31)<2) && (abs(inten_opponent1 - 31)<2) && (satur<0.05) && (gray_scale <= 30))
+		 											 if ((abs(fine_color_balance - 31) < 2) && (abs(inten_opponent1 - 31)<2) && (satur<0.05) && (gray_scale <= 30))
 		 											 {//last_cor03.04.15
 		 												 actual_inten_opponent1 = (int)inten_opponent1;
 		 												 inten_opponent1 = graygrades2[scale_pos];
@@ -555,7 +496,7 @@ else
 		 											  //introduction of gray shades and the white shade
 		 												 if (num_strip <= (NumbStr / 2))
 		 												 {//last_cor23.04.15
-		 													 if ((((gray_scale<7) && (satur<0.05)) || ((gray_scale>52) && (satur<0.1)))
+		 													 if ((((gray_scale < 7) && (satur < 0.05)) || ((gray_scale>52) && (satur<0.1)))
 		 														 && (abs(fine_color_balance - 31) <= 2) && (abs(inten_opponent1 - 31)<2))
 		 													 {//last_cor23.04.15
 		 														 actual_inten_opponent1 = (int)inten_opponent1;
@@ -565,7 +506,7 @@ else
 		 												 }
 		 												 else
 		 												 {
-		 													 if ((gray_scale<7) && (abs(fine_color_balance - 31) <= 2) && (abs(inten_opponent1 - 31)<2) && (satur<0.05))
+		 													 if ((gray_scale < 7) && (abs(fine_color_balance - 31) <= 2) && (abs(inten_opponent1 - 31)<2) && (satur<0.05))
 		 													 {//last_cor23.04.15
 		 														 actual_inten_opponent1 = (int)inten_opponent1;
 		 														 inten_opponent1 = graygrades2[scale_pos];//last_cor23.04.15
@@ -581,15 +522,6 @@ else
 		 														 inten_opponent1 = graygrades2[scale_pos];
 		 														 goto L;
 		 													 }
-		 													 /* if(fine_color_balance<=33)
-		 													 {
-		 													 if((inten_opponent1>40)||(inten_opponent1<=33))
-		 													 {
-		 													 actual_inten_opponent1=(int)inten_opponent1;
-		 													 inten_opponent1=135;
-		 													 goto L;
-		 													 }
-		 													 }*/
 		 													 actual_inten_opponent1 = (int)inten_opponent1;
 		 													 inten_opponent1 = graygrades1[scale_pos];
 		 													 if (inten_opponent1 == 135)
@@ -608,12 +540,6 @@ else
 		 														 inten_opponent1 = graygrades2[scale_pos];
 		 														 goto L;
 		 													 }
-		 													 /*if(((fine_color_balance-31)<=3)&&((inten_opponent1-31)<=3)&&(satur<0.2))
-		 													 {
-		 													 actual_inten_opponent1=(int)inten_opponent1;
-		 													 inten_opponent1=graygrades1[gray_scale/4];
-		 													 goto L;
-		 													 }*/
 		 													 if (inten_opponent1>40)
 		 													 {
 		 														 if (fine_color_balance <= 34)
@@ -710,16 +636,6 @@ else
 		 														 inten_opponent1 = graygrades2[scale_pos];
 		 														 goto L;
 		 													 }
-		 													 /*if((inten_opponent1>40))
-		 													 {
-		 													 if((inten_opponent1<=35)&&(satur<0.35))
-		 													 {
-		 													 actual_inten_opponent1=(int)inten_opponent1;
-		 													 inten_opponent1=graygrades1[gray_scale/4];
-		 													 goto L;
-		 													 }
-		 													 }*/
-
 		 												 }//003
 		 												 if (gray_scale >= 60)
 		 												 {
@@ -738,8 +654,7 @@ else
 		 									 else
 		 									 {//10
 		 									  //range (46-60)
-
-		 										 if (fine_color_balance>31)
+		 										 if (fine_color_balance > 31)
 		 										 {
 		 											 //green-yellow, green-cyan; a nonstandard division oriented to natural scenes, only positive
 		 											 //black, gray and white shades have not been chosen in this range yet
@@ -761,13 +676,6 @@ else
 		 										 else
 		 										 {
 		 											 //without change of the value, from red to yellow-green within the chosen range(46-60), zero and negative
-
-		 											 /*if(gray_scale<=12)
-		 											 {
-		 											 actual_inten_opponent1=(int)inten_opponent1;
-		 											 inten_opponent1=graygrades1[gray_scale/4];
-		 											 goto L;
-		 											 }*/
 
 		 											 actual_inten_opponent1 = inten_opponent1;
 		 											 goto L;
@@ -860,8 +768,7 @@ else
 		 								 }
 
 		 							 }
-
-		 							 if (inten_opponent1>left_bound_of_color_resolution)
+		 							 if (inten_opponent1 > left_bound_of_color_resolution)
 		 							 {//1coordinates G/(G+R), R/(R+B)
 		 								 if (inten_opponent1<32)
 		 								 {//2
@@ -1053,9 +960,7 @@ else
 		 							  //the coordinate system G/(G+R), R/(R+B)
 		 								 actual_inten_opponent1 = inten_opponent1;
 		 								 goto L;
-
 		 							 }//8
-
 		 						 }
 		 					 }//11
 		 					 else
@@ -1063,51 +968,37 @@ else
 		 						 actual_inten_opponent1 = 31;
 		 						 inten_opponent1 = 135;
 		 						 fine_color_balance = 31;
-		 						 //inten_opponent2=0;
-
 		 					 }
 
-
-
 		 				 L:
-		 					 /*if((inten_opponent1==31)&&(num_strip>=12)&&(fine_color_balance>40))
-		 					 {
-		 					 inten_opponent1=inten_opponent1;
-		 					 }*/
-		 					 inten_count1 =
-		 						 frequency_of_color_differ + ((int)inten_opponent1)*(DimDifference1);
+		 					 inten_count1 = frequency_of_color_differ + ((int)inten_opponent1)*(DimDifference1);
 
-		 					 if (num_of_int[inten_opponent1]<MAX_INT_NUMBER - 1)
+		 					 if (num_of_int[inten_opponent1] < MAX_INT_NUMBER - 1)
 		 					 {
 		 						 StripCharacteristicsFinding(inten_opponent1, gray_scale, actual_inten_opponent1,
-		 							 inten_count1, ncoor2, hist_sum, hist_fun, first_pix, last_pix, beg_point, end_point,
+		 							 inten_count1, x, hist_sum, hist_fun, first_pix, last_pix, beg_point, end_point,
 		 							 thick_first, thick_last, thick_stat_input, import_end, last_end,
 		 							 jump_len, jump_end, num_of_int, import_beg, valuable_intensity,
 		 							 bright_consistency, thick_beg, thick_end, thick_stat, thick_prev_beg,
 		 							 thick_prev_end, thick_prev_stat, thick_break_beg, thick_break_end,
 		 							 thick_break_stat, 0, fine_color_balance,point_sat);
-
 		 					 }
 		 	}
 		 }
-		 /*if(pApp->m_ParamHaveBeenChanged)
-		   {
-		 	  return;
-		 } */
 		 FinalCorrection(thick_last,gray_min,gray_max,gray_mean,opponent1_min,opponent1_max,opponent1_mean,
 		 thick_beg,thick_end,import_beg,import_end,thick_break_beg,thick_break_end,thick_prev_beg,thick_prev_end,
 		 thick_first,num_of_int,hist_fun,hist_sum,thick_stat,thick_stat_input,
 		 last_end,jump_len,jump_end,thick_break_stat,thick_prev_stat,
 		 valuable_intensity,bright_consistency,frequency_of_color_differ,0);
 
-		 FinalCorrectionGray(last_endg);
+        FinalCorrectionGray();
 
-		 				}
-		 				else
-		 				{
-		 				point_start=StripWidthPrev*3*num_strip;
-		 for(ncoor1=0;ncoor1<DimY;ncoor1++)
-		 {
+	}
+	else
+    {
+	    point_start = StripWidthPrev*3*num_strip;
+	    for (ncoor1 = 0;ncoor1 < DimY; ncoor1++)
+        {
 		 entry_point=(long)ncoor1*(long)(con_Dim)+(long)(point_start);
 
 
@@ -1127,7 +1018,7 @@ else
 		 	  if(num_of_intg[gray_scale]<MAX_INT_NUMBER-1)
 		       {
 
-		 StripCharacteristicsFindingGray(gray_scale,ncoor1,first_pixg,last_pixg,last_endg);
+		 StripCharacteristicsFindingGray(gray_scale,ncoor1, last_pixg, last_endg);
 		 	  }
 		 	   if(max_intensity>=LOW_INTENSITY)
 		 	 {//11
@@ -1795,19 +1686,19 @@ else
 		 							 thick_break_stat, 0, fine_color_balance,point_sat);
 		 					 }
 
-		 	}
-		 }
-		 FinalCorrection(thick_last,gray_min,gray_max,gray_mean,opponent1_min,opponent1_max,opponent1_mean,
+		    }
+        }
+	    FinalCorrection(thick_last,gray_min,gray_max,gray_mean,opponent1_min,opponent1_max,opponent1_mean,
 		 thick_beg,thick_end,import_beg,import_end,thick_break_beg,thick_break_end,thick_prev_beg,
 		 thick_prev_end,thick_first,num_of_int,hist_fun,hist_sum,thick_stat,thick_stat_input,
 		 last_end,jump_len,jump_end,thick_break_stat,thick_prev_stat,
 		 valuable_intensity,bright_consistency,frequency_of_color_differ,0);
 
-		 FinalCorrectionGray(last_endg);
+	    FinalCorrectionGray();
 
-		 		 }
-		   delete[] frequency_of_color_differ;
-		   	}
+    }
+	delete[] frequency_of_color_differ;
+}
 
 
 
@@ -2957,275 +2848,194 @@ void CStrip::OpponentIntensityFinding(int* inten_opp_count, int start1,
 
 
 /*
+ * @Description:
+ *      Calculates the outermost left and right points of intesities in the strip.
+ *      Calculates how often intesity occurs and vertical lines of occurences.
+ * @Parameters:
+ *      In:
+ *        inten -- intenstity of pixel
+ *        coord -- current coordinate of pixel with intensity (inten)
+ *     Out:
+ *        last_pi -- right outermost position of pixel with intensity (inten)
+ *        last_en --
+ * @Notes: todo: rename function
+ */
+void CStrip::StripCharacteristicsFindingGray(std::uint8_t inten,
+                                             std::uint16_t coord,
+                                             std::uint16_t* last_pi,
+                                             int* last_en)
+{
+    if (hist_sumg[inten] != 0)
+    {
+        std::int16_t save_beg_pare = end_pointg[inten];
+
+        std::int16_t jump_pare = coord - save_beg_pare;
+
+        if ((save_beg_pare != 0) && (jump_pare == 0))
+        {
+            hist_sumg[inten]++;
+        }
+        else
+        {
+            std::int16_t jump_coor = coord - last_pi[inten];
+            last_pi[inten] = coord;
+
+            // tolerant gap
+            if ((jump_coor == 1) || (jump_coor == 2))
+            {
+                hist_fung[inten]++;
+                end_pointg[inten] = coord;
+            }
+            else
+            {
+                return;
+            }
+
+            if (hist_fung[inten] == 1)
+            {
+                return;
+            }
+
+            if (jump_pare <= 5) // if gap is not so big
+            {
+                if (0 == thick_lastg[inten])
+                {
+                    thick_firstg[inten] = save_beg_pare - 1;
+                    thick_stat_inputg[inten] = hist_fung[inten] + hist_sumg[inten] - 4;
+                }
+                thick_lastg[inten] = coord;
+            }
+            else if (thick_lastg[inten] != 0) // form segment
+            {
+                int intens_signif = hist_fung[inten] + hist_sumg[inten] - thick_stat_inputg[inten];
+
+                int consistency = (2 * intens_signif) / (thick_lastg[inten]-thick_firstg[inten]+1);
+
+                if (consistency > 0)
+                {
+                    Strip_value_painting1(inten, thick_firstg[inten], thick_lastg[inten], consistency);
+
+                    Important_interval1(thick_firstg[inten], thick_lastg[inten], inten, intens_signif);
+
+                    last_en[inten] = thick_lastg[inten];
+                }
+                thick_lastg[inten] = 0;
+            }
+        }
+    }
+    else // hist_sumg[inten] == 0
+    {
+        hist_sumg[inten] = 1;
+        last_pi[inten] = coord;
+    }
+}
+
+
+
+/*
+ * @Description:
+ *      When we gained all geometrical information about intensities (arrays thick_lastg),
+ *      we can go over each intensity and form segments.
+ * @Parameters:
  *
  */
-void CStrip::StripCharacteristicsFindingGray(std::uint8_t inten, int coor1,
-		int* first_pi, int* last_pi, int* last_en) {
-	int ncoor1;
-	int jump_coor, jump_pare, save_beg_pare;
-	int intens_signif;
-	int hole;
-	int intensity_cons;
-
-	//jump_pare=0;
-	ncoor1 = coor1;
-	if (hist_sumg[inten] == 0) {
-		first_pi[inten] = ncoor1;
-		last_pi[inten] = ncoor1;
-		hist_sumg[inten]++;
-		return;
-	}
-	jump_coor = ncoor1 - last_pi[inten];
-	save_beg_pare = end_pointg[inten];
-	if (save_beg_pare) {
-		jump_pare = ncoor1 - save_beg_pare;
-		if (jump_pare == 0) {
-			hist_sumg[inten]++;
-			return;
-		}
-	}
-	last_pi[inten] = ncoor1;
-	if (jump_coor == 0) {
-		return;
-	}
-	if (jump_coor <= 2) {
-		hist_fung[inten]++;
-		end_pointg[inten] = ncoor1;
-
-	} else {
-		return;
-	}
-	if (hist_fung[inten] == 1) {
-		beg_pointg[inten] = ncoor1 - jump_coor;
-		return;
-	}
-	if (jump_pare <= 5) {
-		if (!thick_lastg[inten]) {
-			thick_firstg[inten] = save_beg_pare - 1;
-			thick_stat_inputg[inten] = hist_fung[inten] + hist_sumg[inten] - 4;
-
-		}
-		import_endg[inten] = ncoor1;
-		thick_lastg[inten] = ncoor1;
-		return;
-	}
-	if (thick_lastg[inten]) {
-
-		if (last_en[inten]) {
-
-			hole = thick_firstg[inten] - last_en[inten] - 1;
-			if (hole > jump_leng[inten]) {
-				jump_leng[inten] = hole;
-				jump_endg[inten] = thick_firstg[inten] - 1;
-			}
-		}
-		intens_signif = hist_fung[inten] + hist_sumg[inten]
-				- thick_stat_inputg[inten];
-		intensity_cons = ((intens_signif) << 1) / (thick_lastg[inten]
-				- thick_firstg[inten] + 1);
-		if (intensity_cons > 0) {
-
-			Strip_value_painting1(inten, thick_firstg[inten],
-					thick_lastg[inten], intensity_cons);
-			Important_interval1(thick_firstg[inten], thick_lastg[inten], inten,
-					intens_signif);
-
-			last_en[inten] = thick_lastg[inten];
-		}
-		if (num_of_intg[inten] == 1) {
-			import_begg[inten] = thick_firstg[inten];
-		}
-		thick_lastg[inten] = 0;
-	}
-}
-
-
-
-void CStrip::FinalCorrectionGray(int* last_en)
-
+void CStrip::FinalCorrectionGray()
 {
-	int intensity_cons;
-	int end, beg, break_beg, break_end, prev_beg, prev_end;
-	int first, last;
-	int hole;
-	int subtr1;
+    int intensity_cons;
 
-	for (int inu = 0; inu < NUM_INTEN1; inu++) {
-		if (!thick_lastg[inu]) {
-			if (!thick_endg[inu]) {
-				import_begg[inu] = 0;
-				import_endg[inu] = 0;
-			}
-			goto pus;
-		}
-		if (num_of_intg[inu] > MAX_INT_NUMBER - 2) {
-			goto pus;
-		}
-		end = thick_endg[inu];
-		beg = thick_begg[inu];
-		break_beg = thick_break_begg[inu];
-		break_end = thick_break_endg[inu];
-		prev_beg = thick_prev_begg[inu];
-		prev_end = thick_prev_endg[inu];
-		first = thick_firstg[inu];
-		last = thick_lastg[inu];
+    for (std::uint8_t inu = 0; inu < NUM_INTEN1; inu++)
+    {
+        if ((thick_lastg[inu] == 0) || (num_of_intg[inu] > (MAX_INT_NUMBER - 2)))
+        {
+            IntAllInformGray[inu].num_of_int = num_of_intg[inu];
+            continue;
+        }
 
-		if (num_of_intg[inu] == 0) {
-			import_begg[inu] = first;
-			import_endg[inu] = last;
-			thick_begg[inu] = first;
-			thick_endg[inu] = last;
-			thick_statg[inu] = hist_fung[inu] + hist_sumg[inu];
-			intensity_cons = ((thick_statg[inu]) << 1) / (last - first + 1);
-			if (intensity_cons > 0) {
+        std::int16_t first = thick_firstg[inu];
+        std::int16_t last = thick_lastg[inu];
 
-				IntAllInformGray[inu].num_of_int = num_of_intg[inu] + 1;
-				IntAllInformGray[inu].BegInt[num_of_intg[inu]] = first;
-				IntAllInformGray[inu].Signif[num_of_intg[inu]]
-						= thick_statg[inu];
-				IntAllInformGray[inu].EndInt[num_of_intg[inu]] = last;
+        if (num_of_intg[inu] == 0)
+        {
+            thick_statg[inu] = hist_fung[inu] + hist_sumg[inu];
 
-				Strip_value_painting1(inu, first, last, intensity_cons);
-				num_of_intg[inu]++;
-			}
+            intensity_cons = (2 * thick_statg[inu]) / (last - first + 1);
+            if (intensity_cons > 0)
+            {
+                IntAllInformGray[inu].num_of_int = num_of_intg[inu] + 1;
+                IntAllInformGray[inu].BegInt[num_of_intg[inu]] = first;
+                IntAllInformGray[inu].EndInt[num_of_intg[inu]] = last;
+                IntAllInformGray[inu].Signif[num_of_intg[inu]] = thick_statg[inu];
+                // todo: maybe redundant here. Consumes time.
+                Strip_value_painting1(inu, first, last, intensity_cons);
+                num_of_intg[inu]++;
+            }
+            IntAllInformGray[inu].num_of_int = num_of_intg[inu];
+            continue;
+        }
 
-			goto pus;
-		}
+        intensity_cons = (2*(thick_statg[inu] - thick_stat_inputg[inu])) / (last - first + 1);
 
-		intensity_cons = ((hist_fung[inu] + hist_sumg[inu]
-				- thick_stat_inputg[inu]) << 1) / (last - first + 1);
-
-		if (intensity_cons > 0) {
-			IntAllInformGray[inu].num_of_int = num_of_intg[inu] + 1;
-			IntAllInformGray[inu].BegInt[num_of_intg[inu]] = first;
-			IntAllInformGray[inu].Signif[num_of_intg[inu]] = hist_fung[inu]
-					+ hist_sumg[inu] - thick_stat_inputg[inu];
-			IntAllInformGray[inu].EndInt[num_of_intg[inu]] = last;
-
-			Strip_value_painting1(inu, first, last, intensity_cons);
-			num_of_intg[inu]++;
-		} else {
-
-			goto pus;
-		}
-		if (last_en[inu]) {
-
-			hole = thick_firstg[inu] - last_en[inu] - 1;
-			if (hole > jump_leng[inu]) {
-				jump_leng[inu] = hole;
-				jump_endg[inu] = first - 1;
-			}
-		}
-		import_endg[inu] = last;
-		if ((end - beg) < (last - first)) {
-
-			if (prev_end) {
-				if (!break_end) {
-					thick_break_begg[inu] = prev_beg;
-					thick_break_endg[inu] = prev_end;
-					thick_break_statg[inu] = thick_prev_statg[inu];
-				} else {
-					if ((prev_end - prev_beg) > (break_end - break_beg)) {
-						thick_break_begg[inu] = prev_beg;
-						thick_break_endg[inu] = prev_end;
-						thick_break_statg[inu] = thick_prev_statg[inu];
-					}
-				}
-			}
-			thick_prev_begg[inu] = beg;
-			thick_prev_endg[inu] = end;
-			thick_prev_statg[inu] = thick_statg[inu];
-			thick_begg[inu] = first;
-			thick_endg[inu] = last;
-			thick_statg[inu] = hist_fung[inu] + hist_sumg[inu]
-					- thick_stat_inputg[inu];
-
-		} else {
-			if (!break_end) {
-				thick_break_begg[inu] = first;
-				thick_break_endg[inu] = last;
-				thick_break_statg[inu] = hist_fung[inu] + hist_sumg[inu]
-						- thick_stat_inputg[inu];
-			} else {
-				subtr1 = break_end - break_beg;
-				if ((subtr1) < (last - first)) {
-					if (!prev_end) {
-						thick_prev_begg[inu] = break_beg;
-						thick_prev_endg[inu] = break_end;
-						thick_prev_statg[inu] = thick_break_statg[inu];
-					} else {
-						if ((prev_end - prev_beg) < (last - first)) {
-							thick_prev_begg[inu] = break_beg;
-							thick_prev_endg[inu] = break_end;
-							thick_prev_statg[inu] = thick_break_statg[inu];
-						}
-					}
-					thick_break_begg[inu] = first;
-					thick_break_endg[inu] = last;
-					thick_break_statg[inu] = hist_fung[inu] + hist_sumg[inu]
-							- thick_stat_inputg[inu];
-				} else {
-					if (!prev_end) {
-						thick_prev_begg[inu] = first;
-						thick_prev_endg[inu] = last;
-						thick_prev_statg[inu] = hist_fung[inu] + hist_sumg[inu]
-								- thick_stat_inputg[inu];
-					} else {
-						if ((prev_end - prev_beg) < (last - first)) {
-							thick_prev_begg[inu] = first;
-							thick_prev_endg[inu] = last;
-							thick_prev_statg[inu] = hist_fung[inu]
-									+ hist_sumg[inu] - thick_stat_inputg[inu];
-						}
-					}
-				}
-			}
-		}
-
-		pus: IntAllInformGray[inu].num_of_int = num_of_intg[inu];
-	}
+        if (intensity_cons > 0)
+        {
+            IntAllInformGray[inu].num_of_int = num_of_intg[inu] + 1;
+            IntAllInformGray[inu].BegInt[num_of_intg[inu]] = first;
+            IntAllInformGray[inu].Signif[num_of_intg[inu]] = hist_fung[inu] + hist_sumg[inu] - thick_stat_inputg[inu];
+            IntAllInformGray[inu].EndInt[num_of_intg[inu]] = last;
+            Strip_value_painting1(inu, first, last, intensity_cons);
+            num_of_intg[inu]++;
+        }
+        else
+        {
+            IntAllInformGray[inu].num_of_int = num_of_intg[inu];
+            continue;
+        }
+    }
 }
 
 
 
+/*
+ * @Description:
+ *      Writes the most significant grayscale intensity and corresponding segment
+ *      at every point between beg and end.
+ * @Parameters:
+ *      @In:
+ *          intens -- analysed intensity,
+ *          beg -- beginning of segment
+ *          end -- ending of segment
+ *          consistency -- (number of points) / length. Shows significance of segment.
+ * @Notes:
+ *      todo: rename function. Emphasize dealing only with gray intensities.
+ */
+void CStrip::Strip_value_painting1(std::uint8_t intens,
+                                   std::int16_t beg, std::int16_t end,
+                                   int consistency)
+{
+    int limit = NUM_INTEN1 / 4;
 
-void CStrip::Strip_value_painting1(std::uint8_t intens, int beg_int,
-		int end_int, int intens_consist) {
-	int paint_coun;
-	int current_inhabitant;
-	int paint_start, paint_finish;
-	int val;
-	int point_location;
-	int quant;
-	int limit;
+    for (std::int16_t x = (beg >> PRESSING); x <= (end >> PRESSING); x++)
+    {
 
-	limit = NUM_INTEN1 / 4;
-	paint_start = beg_int >> PRESSING;
-	paint_finish = end_int >> PRESSING;
-	for (paint_coun = paint_start; paint_coun <= paint_finish; paint_coun++) {
-		current_inhabitant = *(valuable_intensityg + paint_coun);
-		quant = *(quantity_of_intensitiesg + paint_coun);
-		point_location = quant * PressedLength + paint_coun;
-		if (quant < limit) {
-			*(intensities_occurredg + point_location) = intens;
-			*(interval_occurredg + point_location) = num_of_intg[intens];
-		}
-		if (!current_inhabitant) {
-			*(valuable_intensityg + paint_coun) = intens + 1;
-			*(valuable_intervalg + paint_coun) = *(num_of_intg + intens);
-			*(bright_consistencyg + paint_coun) = intens_consist;
-		} else {
-			val = *(bright_consistencyg + paint_coun);
-			if (val < intens_consist) {
-				*(valuable_intensityg + paint_coun) = intens + 1;
-				*(bright_consistencyg + paint_coun) = intens_consist;
-				*(valuable_intervalg + paint_coun) = *(num_of_intg + intens);
-			}
-		}
-		(*(quantity_of_intensitiesg + paint_coun))++;
-	}
+        int quant = quantity_of_intensitiesg[x];
 
+        int point = quant * PressedLength + x;
+
+        if (quant < limit)
+        {
+            intensities_occurredg[point] = intens;
+            interval_occurredg[point] = num_of_intg[intens];
+        }
+
+        if ((0 == valuable_intensityg[x]) || (bright_consistencyg[x] < consistency))
+        {
+            valuable_intensityg[x] = intens + 1;
+            valuable_intervalg[x]  = num_of_intg[intens];
+            bright_consistencyg[x] = consistency;
+        }
+        quantity_of_intensitiesg[x]++;
+    }
 }
+
 
 
 
