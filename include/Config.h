@@ -17,8 +17,8 @@
 
 
 
-#define IMAGE_WIDTH 640
-#define IMAGE_HEIGHT 480
+#define IMWIDTH 640
+#define IMHEIGHT 480
 
 
 #define STRIPS_NUMBER  48

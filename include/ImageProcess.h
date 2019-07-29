@@ -16,6 +16,7 @@
 #ifndef IMAGE_PROCESS_H
 #define IMAGE_PROCESS_H
 
+
 // for use of cv::Mat class
 #include <opencv2/opencv.hpp>
 
@@ -97,7 +98,7 @@ public:
 
     int* SkyStripsOfBoundaryPoints;
     int* SkyColumnsOfBoundaryPoints;
-    int SkyPixelsOfBoundaryPoints[IMAGE_WIDTH];
+    int SkyPixelsOfBoundaryPoints[IMWIDTH];
     int* SkyVisualization;
     int NumberOfSkyBoundaryPoints;
     int SkyComponents[32];

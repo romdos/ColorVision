@@ -119,7 +119,7 @@ float Marking::left_curvature()
 {
     std::uint8_t length = bunches.size();
 
-    float strip_width = IMAGE_HEIGHT / STRIPS_NUMBER;
+    float strip_width = IMHEIGHT / STRIPS_NUMBER;
     if (length > 2)
     {
         float error = 0.0;
@@ -158,7 +158,7 @@ float Marking::right_curvature()
 {
     std::uint8_t length = bunches.size();
 
-    float strip_width = IMAGE_HEIGHT / STRIPS_NUMBER;
+    float strip_width = IMHEIGHT / STRIPS_NUMBER;
     if (length > 2)
     {
         float error = 0.0;

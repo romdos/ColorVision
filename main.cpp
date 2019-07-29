@@ -23,59 +23,59 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    CImageProcess vision;
-    MarkingDetector marking_detector;
+    cv::namedWindow("Source", cv::WINDOW_AUTOSIZE);
+    cv::moveWindow("Source", 0, 0);
 
-    std::string video_path = "/home/roman/Pictures/caltech-lanes/cordova1/f%05d.png";
-    std::string window_name = "Source";
-
-    cv::namedWindow(window_name, cv::WINDOW_AUTOSIZE);
-    cv::moveWindow(window_name, 0, 0);
-
-    cv::VideoCapture cap(video_path);
+    cv::VideoCapture cap("/home/roman/Pictures/caltech-lanes/cordova1/f%05d.png");
     if (!cap.isOpened())
     {
         printf("Can't open video file.");
         return -1;
     }
 
-    cv::Size size(IMAGE_WIDTH, IMAGE_HEIGHT);
-    cv::Mat frame, resized_fr; // todo: define as zeros with size and type
+    cv::Size size(IMWIDTH, IMHEIGHT);
+    cv::Mat frame; // todo: define as zeros with size and type
 
-    cv::VideoWriter video_writer("/home/roman/Videos/Processed/processed_video.avi", cv::VideoWriter::fourcc('M', 'J', 'P', 'G'), 30, size, true);
+    cv::VideoWriter videoWriter("/home/roman/Videos/Processed/processed_video.avi",
+                                    cv::VideoWriter::fourcc('M', 'J', 'P', 'G'),
+                                    30, size, true);
 
-    if (video_writer.isOpened() == false)
+    if (!videoWriter.isOpened())
     {
         std::cout << "Cannot save the video to a file" << std::endl;
         std::cin.get(); //wait for any key press
         return -1;
     }
 
-    for (size_t fr_number = 0; ; ++fr_number)
+    CImageProcess vision;
+    MarkingDetector detector;
+
+    /* Possible overflow of index */
+    for (uint16 frameNumber = 0; ; frameNumber++)
     {
         cap >> frame;
 
         if (frame.empty())
             break;
 
-        cv::resize(frame, resized_fr, size);
+        cv::resize(frame, frame, size);
 
-        vision.segment(resized_fr, fr_number);
+        vision.segment(frame, frameNumber);
 
         std::vector<Marking> markings;
 
-        marking_detector.strips = vision.GrayBunches;
+        detector.strips = vision.GrayBunches;
         std::cout << vision.LowerSkyFiber << std::endl;
-        marking_detector.find(markings, vision.LowerSkyFiber);
+        detector.find(markings, vision.LowerSkyFiber);
 
-        vision.draw_markings(resized_fr, markings);
+        vision.draw_markings(frame, markings);
 
-        video_writer.write(resized_fr);
+        videoWriter.write(frame);
 
-        cv::imshow(window_name, resized_fr);
+        cv::imshow("Source", frame);
         cv::waitKey(3);
     }
 
-    video_writer.release();
+    videoWriter.release();
 }
 

@@ -19,30 +19,19 @@
 #define STRIP_H
 
 
+/* Redefine types */
+#include "std_types.h"
 
-/*
- *  For use of memset() function.
- *  Note: in the future it will be removed.
- *
- */
+
+/* For use of memset() function. In the future it will be removed. */
 #include <cstring>
 
 
-
-/*
- * Pre-build parameters: image size, number of strips and etc.
- *
- *
- */
+/* Pre-build parameters: image size, number of strips and etc. */
 #include "Config.h"
 
 
-
-/*
- *  Segments.
- *
- *
- */
+/* Segments */
 #include "Geometry.h"
 
 

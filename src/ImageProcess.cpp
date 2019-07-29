@@ -52,7 +52,7 @@ CImageProcess::CImageProcess()
 
     GreenFinding = 1;
 
-    memset(SkyPixelsOfBoundaryPoints, (int) '\0', sizeof(int) * IMAGE_WIDTH);
+    memset(SkyPixelsOfBoundaryPoints, (int) '\0', sizeof(int) * IMWIDTH);
 
 
     CurStrip = NULL;
@@ -117,8 +117,8 @@ CImageProcess::CImageProcess()
     VerticalContrastCurves=NULL;//last_cor3.06.18
     VerticalContrastCurvesClosedSignals=NULL;//last_cor3.06.18
 
-	DimX = IMAGE_WIDTH;
-	DimY = IMAGE_HEIGHT;
+	DimX = IMWIDTH;
+	DimY = IMHEIGHT;
 
 
 	SkyFinding = true;
@@ -14648,17 +14648,18 @@ CMotion::~CMotion(void) {
 
 
 
-/*
+/*********************************************************************************
  * @Description:
  *      Draws all found road marking lines.
  * @Parameters:
- *      @In:    image -- image, where road marking will be drawn,
- *              markings -- list, where from markings are extracted and drawn.
- */
-void CImageProcess::draw_markings(cv::Mat& image, std::vector<Marking>& markings)
+ *      img -- image, where road marking will be drawn,
+ *      markings -- list, where from markings are extracted and drawn.
+ ********************************************************************************/
+void CImageProcess::draw_markings(cv::Mat& img, std::vector<Marking>& markings)
 {
     cv::Scalar color(40, 40, 250);     // color of line
-    int thickness = 2;                 // thickness of line
+    // thickness of line
+    int thickness = 2;
 
     for (auto& marking: markings)
     {
@@ -14669,7 +14670,7 @@ void CImageProcess::draw_markings(cv::Mat& image, std::vector<Marking>& markings
             cv::Point begin(bunch.beg, y);
             cv::Point end(bunch.end, y);
 
-            cv::line(image, begin, end, color, thickness);
+            cv::line(img, begin, end, color, thickness);
         }
     }
 }
