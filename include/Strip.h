@@ -1,16 +1,11 @@
 /*
- * Separate strip in an image. Contains all necessary data and methods
+ * Separate strip of an image. Contains all necessary data and methods
  * for building Geometrized Histogram.
  *
  *
  *
  *
  */
-
-
-
-
-
 
 
 
@@ -23,15 +18,16 @@
 #include "std_types.h"
 
 
+/* Pre-build parameters: image size, number of strips and etc. */
+#include "cv_config.h"
+
+
+
 /* For use of memset() function. In the future it will be removed. */
 #include <cstring>
 
 
-/* Pre-build parameters: image size, number of strips and etc. */
-#include "Config.h"
-
-
-/* Segments */
+/* Geometrical elements: segments, metrics etc. */
 #include "Geometry.h"
 
 
@@ -228,19 +224,18 @@ public:
 class CStrip
 {
 public:
+
 	CStrip();
 	~CStrip();
 
-public:
-	int num_strip; // number of the strip
 
-	int StripWidth; // width of a strip in pixels
-    int StripLength; // todo: delete because it is the image width
-
+	int num_strip; // todo: rename
+	int StripWidth; // todo: delete cause it is constant
+    int StripLength; // todo: delete cause it is constant
 	int StripWidthPrev; // width of the preceding strip
 
-	// Image data
-    std::uint8_t* intensi;
+	// Grayscale intensity (image matrix linear array)
+    uint8* intensi;
 
     int HorizontalVertical;
 
@@ -257,20 +252,21 @@ public:
 
 	int* correct_int;
 
-	int DimX; // width  of the image in pixels
-	int Cor_Width; //correction to the width that takes into account the placement of the DIB
-	int DimY; // height of the image in pixels
+	int DimX; // width  of the image in pixels, todo: delete cause it is constant
+    int DimY; // height of the image in pixels, todo: delete cause it is constant
+
+    int Cor_Width; //correction to the width that takes into account the placement of the DIB
 	int Dimension;
 	int DimDifference; //parameter that specifies the number of gradations of
-	//the difference between the opponent ratios
 
+
+	//the difference between the opponent ratios
 	int DimDifference1;
 	int DimDifference2;
 
 	int left_bound_of_color_resolution;
 	int right_bound_of_color_resolution;
 
-	//beginning parameters for analysis of a color ratio image
 	int *hist_fun; // number of lines where pixels of a particular intensity occur
 	int *hist_sum; // the value of the histogram function
 
@@ -307,7 +303,7 @@ public:
 	int *opponent1_max;
 	float *opponent1_mean;
 
-	std::uint8_t* valuable_intensity; // flags for "visible" intensities
+	uint8* valuable_intensity; // flags for "visible" intensities
 	int* bright_consistency; // array that describes the most visible intensities
 	int* intensities_occurred;// array that describes the intensities at the
 	//particular point of the vertical axis
@@ -320,10 +316,10 @@ public:
 	int* invert_color_difference1;
 	int* invert_color_difference2;
 
-	TIntCharact* IntAllInform; // Rough preliminary description of strip's geometry of
-	// intensity destribution for the G/(G +B) component
+	TIntCharact IntAllInform[NUM_INTEN]; // Rough preliminary description of strip's geometry of
 
-	/* Arrays, where each element corresponds to intensity, i.e. end_pointg[intens] = coord etc. */
+	/* Arrays, where an index of each element is an intensity,
+	 * for example, end_pointg[intens] = coord etc. */
 
     // number of lines where pixels of a particular intensity occur
     int *hist_fung;
@@ -349,25 +345,26 @@ public:
 	int* import_begg; //the most important interval for the particular value
 	int* import_endg;
 
-	std::uint8_t* valuable_intensityg; // flags for "visible" intensities
+	uint8* valuable_intensityg; // flags for "visible" intensities
+
 	int* bright_consistencyg; // array that describes the most visible intensities
 	int* intensities_occurredg;// array that describes the intensities at the
+
 	//particular point of the vertical axis
 	int* interval_occurredg;
 
     // Quantity of grayscale intensities at each point
 	int* quantity_of_intensitiesg;
 
-
-
 	int* intervals_occurredg;
+
 	int* valuable_intervalg; //the best visible intervals of intensities.
 
 	// Rough preliminary description of strip's geometry of
     // intensity destribution for the grayscale component
-	TIntCharactGray* IntAllInformGray;
+	TIntCharactGray IntAllInformGray[NUM_INTEN1];
 
-	/* Functions */
+	/********************************* Methods **************************************/
 
 	void Loc_stat_geom_double(bool NumPair);
 

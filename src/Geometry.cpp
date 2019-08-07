@@ -35,7 +35,7 @@ std::uint8_t measure_intersection(Segment& s1, Segment& s2,
 	std::int16_t begIntersection = std::max(s1.beg, s2.beg);
     std::int16_t endIntersection = std::min(s1.end, s2.end);
 	
-	if (begIntersection > endIntersection+5) // not intersecting
+	if (begIntersection > endIntersection) // not intersecting
 	{
 		*Ratio1 = begIntersection - endIntersection;
 		*Ratio2 = 0;

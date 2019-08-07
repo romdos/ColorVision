@@ -1,11 +1,6 @@
 /*
-*  Contains array of grayscale bunches for current strip (CurStrip).
-*/
- 
-
-
-
-
+ * Bunches for current strip based only on intensity (grayscale bunches).
+ */
 
 
 #ifndef BUNCHGRAY_H
@@ -13,10 +8,10 @@
 
 
 
-
-
 // Container for bunches
 #include <vector>
+
+
 // To get segments
 #include "Strip.h"
 
@@ -171,11 +166,8 @@ public:
 									 int direc,
 									 int* boundary_int);
 
-    std::int8_t find_bursts(std::uint16_t max_length,
-                            std::uint8_t depth);
-
-    std::int8_t find_bursts2(std::uint16_t max_length,
-                             std::uint8_t depth);
+    sint8 findBursts(uint16 max_length,
+                     uint8 depth);
 };
 
 

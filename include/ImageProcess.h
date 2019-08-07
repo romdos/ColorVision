@@ -1,5 +1,5 @@
 /*
- *
+ * Class presenting the program
  *
  *
  *
@@ -8,16 +8,11 @@
 
 
 
-
-
-
-
-
 #ifndef IMAGE_PROCESS_H
 #define IMAGE_PROCESS_H
 
 
-// for use of cv::Mat class
+// cv::Mat class
 #include <opencv2/opencv.hpp>
 
 
@@ -35,13 +30,7 @@
 
 
 
-
 #include "MarkingDetector.h"
-
-
-
-
-
 
 
 
@@ -51,6 +40,7 @@ public:
     CImageProcess();
 	~CImageProcess();
 
+public:
     int DimX; // width  of the image in pixels
 	int DimY; // height of the image in pixels
 
@@ -206,12 +196,18 @@ public:
     TIntColoredCharacteristics* IntegratedColorBunchesCharacteristics;
     TIntColorLessBack* IntegratedColorlessBackIntervals;
     ColorSectionDescr* ColorDescrSect;
+    ColorSectionDescr* MarkingDescr;
+    int* MarkingTraceLeft;
+    int* MarkingTraceRight;
+
     CColorSection* ColorSection;
     int* SectionTraceLeft;
     int* SectionTraceRight;
+
     int* LineVertTrace;
     int* SectionStraightSegments;//last_cor20.11.14
     int* NumberOfConnectionsLeftRight;
+
     int* SectionNeighborsLeftRight;
     int* SectionNeighborsLeftRightIteration;
 
@@ -226,11 +222,13 @@ public:
 
 	void InitialConstructions();//memory allocation and object construction
 
-	void segment(cv::Mat& frame, size_t frame_count); // segments the image
+	void segmentation(cv::Mat& frame, uint16 frameNumber); // segments the image
 
 	void DeleteTemporal(); // delete intermediate arrays;
 
 	void ContrastBunchesMotion(int num_strips, int* bunches_location); 	 // calculate contrasts motion
+
+	void drawMarkingsTemp(cv::Mat& img, std::vector<Marking>& markings);
 
 
 	int  ExtensionOfLeftContrast(int number_of_strip,int bunch_number,int bunch_beg,int bunch_end,int bunch_hue,
@@ -350,9 +348,7 @@ int bunch_lower_saturation,int bunch_upper_saturation);
 
 	 int SectionGeometry(int section_num,int* meam_l,int* mean_u);
 
-	 int
-
-	 GreenStripDescription(int adjacent_bunch,
+	 int GreenStripDescription(int adjacent_bunch,
 	 int max_section_bunch,int strp_number,int left_r,int* last_green,int* tot_green_length,int* first_green,
 	 int* last_section_green_bunch,int* last_green_section,int* first_green_section_bunch,
 	 int* first_green_section);
@@ -361,40 +357,26 @@ int bunch_lower_saturation,int bunch_upper_saturation);
 	 int* next_member_appropriate,int* chains_appropriate,int* chain_first_member,
 	 int* number_of_ch,int sign);
 
-	 int
-
-	 AppropriateChain(int first_appropriate,int shift_length,int* appropriate_numbers,
+	 int AppropriateChain(int first_appropriate,int shift_length,int* appropriate_numbers,
 	 int* chains_appropriate,int* chain_first,int* sect_ends,int sign,int chain_number);
 
-	 int
-
-	 ChainLongest(int sec_length,int number_of_chains,int* coordinates,int* appropriate_numbers,
+	 int ChainLongest(int sec_length,int number_of_chains,int* coordinates,int* appropriate_numbers,
 	 int* chains_appropriate,int* chain_first,int* last_chain_last,int* chains_prolongation,int sign);
 
-	 int
-
-	 StraightApproximation(int* array_elements,int* paint,int first_member,
+	 int StraightApproximation(int* array_elements,int* paint,int first_member,
 	 int last_member,int* reliability,int left_right);
 
-	 int
-
-	 SequenceOfChainsLongest(int sec_length,int sect_num,int number_of_chains,
+	 int SequenceOfChainsLongest(int sec_length,int sect_num,int number_of_chains,
 	 int* section_array,int* chains_prolongated,int* chain_first,int* chains_appropriate,
 	 int* first_prolong,int* max_length);
 
-	 int
+	 int VerticalPartsofGreenBoundary();
 
-	 VerticalPartsofGreenBoundary(void);
+	 void FillingVerticalPartsofGreenBoundary(int first_step,int last_step);
 
-	 void
+	 void VerticalConnectedToBoundary();
 
-	 FillingVerticalPartsofGreenBoundary(int first_step,int last_step);
-
-	 void
-
-	 VerticalConnectedToBoundary(void);
-
-	 void RoadComponents(void);
+	 void RoadComponents();
 
 	 int VerticalComponentsInBoundary(int section_number,int* ends_coordinates,
 	 int* verticl_parts,int sign);
@@ -402,25 +384,25 @@ int bunch_lower_saturation,int bunch_upper_saturation);
 	 int NextSection(int bunch_number,int strip_number,int* next_beg,int* next_end);
 
 
-	 int FindSignalZones(void);
+	 int FindSignalZones();
 
-	 int VerticalLinesConstruct(void);
+	 int VerticalLinesConstruct();
 
 	 int VerticalLinePassing(int count_bun,int next_str,int first_cl,int first_end,int v_line_number);
 
-	 int ConnectedVerticalLines(void);
+	 int ConnectedVerticalLines();
 
-	 int IntersectingVerticalLines(void);
+	 int IntersectingVerticalLines();
 
-	 int BreakingVerticalLines(void);
+	 int BreakingVerticalLines();
 
-	 int VerticalLinesSignalsConnected(void);
+	 int VerticalLinesSignalsConnected();
 
 	 void detect_sky();
 
 	 void detect_green();
 
-	 void draw_markings(cv::Mat& image, std::vector<Marking>& markings);
+	 void drawMarkings(cv::Mat& image, const Marking markings[]);
 };
 
 #endif

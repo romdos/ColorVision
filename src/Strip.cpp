@@ -83,8 +83,6 @@ CStrip::~CStrip()
 	delete[] intensities_occurred;
 	delete[] interval_occurred;
 
-	delete[] IntAllInform;
-
 	delete[] hist_fung;
 	delete[] hist_sumg;
 	delete[] num_of_intg;
@@ -112,9 +110,6 @@ CStrip::~CStrip()
 	delete[] quantity_of_intensitiesg;
 	delete[] intensities_occurredg;
 	delete[] interval_occurredg;
-
-	delete[] IntAllInformGray;
-
 }
 
 

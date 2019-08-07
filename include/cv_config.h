@@ -1,19 +1,24 @@
-//
-// Created by roman on 14.05.19.
-//
+/*
+ * Contains pre-defined parameters: image width, num of strips etc.
+ *
+ *
+ *
+ *
+ */
 
 
 
 
 
-
-
-#ifndef COLORVISION_CONFIG_H
-#define COLORVISION_CONFIG_H
-
+#ifndef COLORVISION_CV_CONFIG_H
+#define COLORVISION_CV_CONFIG_H
 
 
 
+#define ON 1
+#define FALSE 0
+
+#define VIDEOWRITER OFF
 
 
 
@@ -21,7 +26,7 @@
 #define IMHEIGHT 480
 
 
-#define STRIPS_NUMBER  48
+#define STRIPS_NUM  48
 
 
 
@@ -34,7 +39,10 @@
 
 
 #define PRESSING 1
+
+// Number of color segments
 #define NUM_INTEN 136
+// Number of grayscale segments
 #define NUM_INTEN1 64
 
 
@@ -59,5 +67,7 @@
 #define LOW_INTENSITY2 46
 #define LOW_INTENSITY3 23
 
+#define NUM_YELLOW_WHITE_MARKING 32
 
-#endif //COLORVISION_CONFIG_H
+
+#endif //COLORVISION_CV_CONFIG_H

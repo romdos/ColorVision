@@ -1936,21 +1936,21 @@ int CBunchGray::FindingIntervalsWithAdjacent(int last_member,
 
 
 
-/*
+/*******************************************************************************
  *  @Description:
  *       Constructs burst bunches from given segments of a strip and adds them to bursts list.
  *  @Parameters:
- *      @In:    max_length -- upper boundary of bunch length,
- *              depth -- shows how deep we go forward along intensities.
- *  @Return value:
- *              -1 -- if no bunch was found,
- *              0 -- otherwise.
+ *       max_length -- upper boundary of bunch length,
+ *       depth -- shows how deep we go forward along intensities.
+ *  @Return:
+ *       -1 -- if no bunch was found,
+ *        0 -- otherwise.
  *  @Notes:
  *  	todo: make convenient and efficient indexation -> (intens, interv) (e.g. B-tree).
  *  	        make with gap.
-*/
-std::int8_t CBunchGray::find_bursts(std::uint16_t max_length,
-                                    std::uint8_t depth)
+ *******************************************************************************/
+sint8 CBunchGray::findBursts(uint16 max_length,
+                             uint8 depth)
 {
     // todo: analyse performance of clear()
     bursts.clear();
@@ -1958,39 +1958,39 @@ std::int8_t CBunchGray::find_bursts(std::uint16_t max_length,
     /* Find maximal intensity with non-empty set of segments */
     TIntCharactGray* segments = StripCur->IntAllInformGray;
 
-    std::uint8_t start_intens = NUM_INTEN1 - 1;
-    std::uint8_t segments_num = segments[start_intens].num_of_int;
+    uint8 startIntens = NUM_INTEN1 - 1;
+    uint8 segmentsNum = segments[startIntens].num_of_int;
 
-    while ((start_intens > 0) && (segments_num == 0))
+    while ((0U != startIntens) && (0U == segmentsNum))
     {
-        --start_intens;
-        segments_num = segments[start_intens].num_of_int;
+        --startIntens;
+        segmentsNum = segments[startIntens].num_of_int;
     }
 
     // Dark min intensity is not appropriate for obvious reasons
-    if (start_intens == 0)
+    if (0U == segmentsNum)
         return -1;
 
     // Array (or matrix) showing was a segment (intens, number) already picked or not
     std::vector<bool> picked_segments(NUM_INTEN1 * MAX_INT_NUMBER, false);
 
     // todo: investigate
-    std::uint8_t end_intens = start_intens-2;
+    uint8 end_intens = startIntens - 10U;
 
-    for (size_t intens = start_intens; intens > end_intens; --intens)
+    for (uint8 intens = startIntens; intens > end_intens; --intens)
     {
-        segments_num = segments[intens].num_of_int;
-        for (size_t segment = 0; segment < segments_num; segment++)
+        segmentsNum = segments[intens].num_of_int;
+        for (uint8 segment = 0; segment < segmentsNum; segment++)
         {
-            bool segment_picked = picked_segments[intens * MAX_INT_NUMBER + segment];
+            bool picked = picked_segments[intens * MAX_INT_NUMBER + segment];
 
-            if (segment_picked)
+            if (picked)
                 continue;
 
             picked_segments[intens * MAX_INT_NUMBER + segment] = true;
 
-            std::int16_t beg = segments[intens].BegInt[segment];
-            std::int16_t end = segments[intens].EndInt[segment];
+            sint16 beg = segments[intens].BegInt[segment];
+            sint16 end = segments[intens].EndInt[segment];
 
             Segment seed(beg, end);
 
@@ -1998,16 +1998,16 @@ std::int8_t CBunchGray::find_bursts(std::uint16_t max_length,
                 continue;
 
             /* Grow a bunch going from start_intens to left */
-            std::uint8_t picked_segments_num = 1;
-            std::uint8_t next_intens = intens - 1;
-            std::uint8_t intens_differ = intens - next_intens;
-            std::uint8_t gap = 0;
+            uint8 picked_segments_num = 1;
+            uint8 next_intens = intens - 1;
+            uint8 intens_differ = intens - next_intens;
+            uint8 gap = 0;
 
             float mean_intens = intens;
 
             while (intens_differ < depth)
             {
-                std::uint8_t next_segments_num = segments[next_intens].num_of_int;
+                uint8 next_segments_num = segments[next_intens].num_of_int;
 
                 bool intersected = false;
                 for (size_t next_segment = 0; next_segment < next_segments_num; next_segment++)
@@ -2044,79 +2044,6 @@ std::int8_t CBunchGray::find_bursts(std::uint16_t max_length,
                 intens_differ = intens - next_intens;
             }
             mean_intens /= picked_segments_num;
-            GrayBunch bunch(beg, end, StripCur->num_strip, mean_intens);
-            // todo: analyse copy
-            bursts.push_back(bunch);
-        }
-    }
-
-    return 0;
-}
-
-
-
-/*
- *  @Description:
- *       Constructs burst bunches from given segments of a strip and adds them to bursts list.
- *  @Parameters:
- *      @In:    max_length -- upper boundary of bunch length,
- *              depth -- shows how deep we go forward along intensities.
- *  @Return value:
- *              -1 -- if no bunch was found,
- *              0 -- otherwise.
- *  @Notes:
- *  	todo: make convenient and efficient indexation -> (intens, interv) (e.g. B-tree).
- *  	    find more efficient algorithm.
-*/
-std::int8_t CBunchGray::find_bursts2(std::uint16_t max_length,
-                                     std::uint8_t depth)
-{
-    // todo: analyse performance of clear()
-    bursts.clear();
-
-    /* Find maximal intensity with non-empty set of segments */
-    TIntCharactGray* segments = StripCur->IntAllInformGray;
-
-    std::uint8_t start_intens = NUM_INTEN1 - 1;
-    std::uint8_t segments_num = segments[start_intens].num_of_int;
-
-    while ((start_intens > 0) && (segments_num == 0))
-    {
-        --start_intens;
-        segments_num = segments[start_intens].num_of_int;
-    }
-
-    // Dark min intensity is not appropriate for obvious reasons
-    if (start_intens == 0)
-        return -1;
-
-    // Array (or matrix) showing was a segment (intens, number) already picked or not
-    std::vector<bool> picked_segments(NUM_INTEN1 * MAX_INT_NUMBER, false);
-
-    // todo: investigate
-    std::uint8_t end_intens = start_intens - 1;
-
-    for (size_t intens = start_intens; intens > end_intens; --intens)
-    {
-        segments_num = segments[intens].num_of_int;
-        for (size_t segment = 0; segment < segments_num; segment++)
-        {
-            bool segment_picked = picked_segments[intens * MAX_INT_NUMBER + segment];
-
-            if (segment_picked)
-                continue;
-
-            picked_segments[intens * MAX_INT_NUMBER + segment] = true;
-
-            std::int16_t beg = segments[intens].BegInt[segment];
-            std::int16_t end = segments[intens].EndInt[segment];
-
-            Segment seed(beg, end);
-
-            if (seed.length() > max_length)
-                continue;
-
-            float mean_intens = intens;
             GrayBunch bunch(beg, end, StripCur->num_strip, mean_intens);
             // todo: analyse copy
             bursts.push_back(bunch);

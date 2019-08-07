@@ -11,17 +11,21 @@
 
 
 #include <cmath>
-#include <iostream>
+
 #include "MarkingDetector.h"
 
 
 
 
 
-Marking::Marking(){}
+Marking::Marking()
+{
+    isValid = false;
+}
+
+
+
 Marking::~Marking(){}
-
-
 
 
 
@@ -39,72 +43,84 @@ MarkingDetector::~MarkingDetector()
 
 
 
-/*
+/***********************************************************************************
  *  @Description:
- *       Finds all marking lines in a picture based on found candidate bunches (bursts)
- *          and pushes them to the list <markings>.
- *  @Parameters:
- *      @In:    low_sky_boundary -- lower boundary of the sky,
- *      @Out:   markings -- list where detected markings will be stored,
- */
-void MarkingDetector::find(std::vector<Marking>& markings,
-                           std::uint8_t low_sky_boundary)
+ *       Finds two marking lines in a picture based on found candidate bunches (bursts)
+ *  @Return:
+ *      Number of found markings.
+ **********************************************************************************/
+uint8 MarkingDetector::find(uint8 low_sky_boundary)
 {
-    if (low_sky_boundary < STRIPS_NUMBER)
+    if (low_sky_boundary >= STRIPS_NUM)
     {
-        for (size_t origin_strip = 0; origin_strip < low_sky_boundary; ++origin_strip)
+        return 0U;
+    }
+
+    uint8 markingNum = 0U;
+    uint8 originStrip;
+
+    for (originStrip = 0U; originStrip < low_sky_boundary; ++originStrip)
+    {
+        if (markingNum == 2U)
+            break;
+        for (int i = 0; i < strips[originStrip].bursts.size(); i++)
         {
-            for (auto& seed: strips[origin_strip].bursts)
+            if (markingNum == 2U)
+                break;
+
+            GrayBunch next_bunch = strips[originStrip].bursts[i];
+            if (next_bunch.sectionCrossed)
+                continue;
+
+            uint8 stripNum = next_bunch.stripNumber;
+
+            Marking	marking;
+            bool bunch_is_found = true;
+
+            while (bunch_is_found)
             {
-                if (seed.sectionCrossed)
-                    continue;
+                if ((++stripNum) >= low_sky_boundary)
+                    break;
 
-                std::uint8_t strip_number = seed.stripNumber;
-                GrayBunch next_bunch = seed;
-                Marking	marking;
-
-                bool bunch_is_found = true;
-                std::uint8_t length = 0;
-                while (bunch_is_found && (length < 6))
+                for (auto& candidate: strips[stripNum].bursts)
                 {
-                    ++strip_number;
-                    if (strip_number >= low_sky_boundary)
-                        break;
+                    if (candidate.sectionCrossed && (candidate.length() < 2))
+                        continue;
 
-                    for (auto& candidate: strips[strip_number].bursts)
+                    Segment s1(next_bunch.beg, next_bunch.end);
+                    Segment s2(candidate.beg, candidate.end);
+                    uint16 r1;
+                    uint16 r2;
+
+                    bool bunchesIntersect = measure_intersection(s1, s2, &r1, &r2) <= 2;
+                    bool theirIntensClose = std::abs(candidate.intens - next_bunch.intens) <= 3.0f;
+
+                    if (bunchesIntersect && theirIntensClose)
                     {
-                        if (candidate.sectionCrossed && (candidate.length() < 2))
-                            continue;
+                        bunch_is_found           = true;
+                        candidate.sectionCrossed = true;
 
-                        Segment s1(next_bunch.beg, next_bunch.end);
-                        Segment s2(candidate.beg, candidate.end);
+                        next_bunch = candidate;
 
-                        std::uint16_t r1, r2; // useless, only for measure_intersection
-                        // todo: adjust thresholds
-                        bool bunches_intersected = measure_intersection(s1, s2, &r1, &r2) <= 2;
-                        bool similar = std::abs(candidate.intens - next_bunch.intens) <= 5;
+                        marking.bunches.push_back(candidate);
 
-                        if (bunches_intersected && similar)
-                        {
-                            marking.bunches.push_back(candidate);
-                            candidate.sectionCrossed = true;
-                            next_bunch = candidate;
-                            bunch_is_found = true;
-                            break;
-                        }
-                        bunch_is_found = false;
+                        break;
                     }
+                    bunch_is_found = false;
                 }
-                // Criteria
-                bool long_enough = marking.length() > 4;
-                //bool straight_from_left = marking.left_curvature() < 2;
-                //bool straight_from_right = marking.right_curvature() < 2;
+            }
 
-                if (long_enough)// && straight_from_left && straight_from_right)
-                    markings.push_back(marking);
+            bool straightLeft = marking.left_curvature() < 16.0f;
+            bool straightRight = marking.right_curvature() < 16.0f;
+            if (marking.length() > 5U && straightLeft && straightRight)
+            {
+                marking.isValid = true;
+                markings[markingNum++] = marking;
             }
         }
     }
+
+    return markingNum;
 }
 
 
@@ -117,33 +133,19 @@ void MarkingDetector::find(std::vector<Marking>& markings,
  */
 float Marking::left_curvature()
 {
-    std::uint8_t length = bunches.size();
+    uint8 length = bunches.size();
 
-    float strip_width = IMHEIGHT / STRIPS_NUMBER;
+    float strip_width = IMHEIGHT / STRIPS_NUM;
     if (length > 2)
     {
-        float error = 0.0;
-        for (size_t i = 1; i < length-1; ++i)
+        float error = 0.0f;
+        for (uint8 i = 1; i < length; ++i)
         {
-            float x1 = bunches[i-1].beg;
-            float x2 = bunches[i].beg;
-            float x3 = bunches[i+1].beg;
-
-            float y1 = (i-1) * strip_width + 0.5;
-            float y2 = (i) * strip_width + 0.5;
-            float y3 = (i+1) * strip_width + 0.5;
-
-            float scalar_product = (x1 - x2) * (x3 - x2) + (y3 - y2) * (y2 - y1);
-            float length_1 = std::sqrt((x1 - x2)*(x1 - x2) + (y2 - y1)*(y2 - y1));
-            float length_2 = std::sqrt((x3 - x2)*(x3 - x2) + (y3 - y2)*(y3 - y2));
-
-            float cos_angle = scalar_product / (length_1 * length_2);
-
-            error += (1 + cos_angle);
+            error += std::abs(bunches[i].beg - bunches[i-1].beg);
         }
-        return error;
+        return error /(length-1.0f);
     }
-    return 0;
+    return 0.0f;
 }
 
 
@@ -156,31 +158,17 @@ float Marking::left_curvature()
  */
 float Marking::right_curvature()
 {
-    std::uint8_t length = bunches.size();
+    uint8 length = bunches.size();
 
-    float strip_width = IMHEIGHT / STRIPS_NUMBER;
+    float strip_width = IMHEIGHT / STRIPS_NUM;
     if (length > 2)
     {
-        float error = 0.0;
-        for (size_t i = 1; i < length-1; ++i)
+        float error = 0.0f;
+        for (uint8 i = 1; i < length; ++i)
         {
-            float x1 = bunches[i-1].end;
-            float x2 = bunches[i].end;
-            float x3 = bunches[i+1].end;
-
-            float y1 = (i-1) * strip_width + 0.5;
-            float y2 = (i) * strip_width + 0.5;
-            float y3 = (i+1) * strip_width + 0.5;
-
-            float scalar_product = (x1 - x2) * (x3 - x2) + (y3 - y2) * (y2 - y1);
-            float length_1 = std::sqrt((x1 - x2)*(x1 - x2) + (y2 - y1)*(y2 - y1));
-            float length_2 = std::sqrt((x3 - x2)*(x3 - x2) + (y3 - y2)*(y3 - y2));
-
-            float cos_angle = scalar_product / (length_1 * length_2);
-
-            error += (1 + cos_angle);
+            error += std::abs(bunches[i].end - bunches[i-1].end);
         }
-        return error;
+        return error /(length-1.0f);
     }
-    return 0;
+    return 0.0f;
 }

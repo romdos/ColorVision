@@ -9,8 +9,8 @@
 
 
 
-#ifndef COLORVISION_START_MARKINGDETECTOR_H
-#define COLORVISION_START_MARKINGDETECTOR_H
+#ifndef MARKINGDETECTOR_H
+#define MARKINGDETECTOR_H
 
 
 
@@ -19,20 +19,21 @@
 
 
 
-/* Marking line */
 class Marking
 {
 public:
     Marking();
     ~Marking();
-    std::vector<GrayBunch> bunches;       // chain of bunches which is candidate for road marking
-public:
+
+    // detected or not
+    bool isValid;
+    // bunches composing marking
+    std::vector<GrayBunch> bunches;
+
     std::uint8_t length() {return bunches.size();}
     float left_curvature();
     float right_curvature();
-
 };
-
 
 
 
@@ -42,14 +43,15 @@ public:
     MarkingDetector();
     ~MarkingDetector();
 
+
+    Marking markings[2U];
+
+
     CBunchGray* strips;
 
-public:
-
-    void find(std::vector<Marking>& markings,
-                std::uint8_t low_sky_boundary);
+    uint8 find(uint8 low_sky_boundary);
 
 };
 
 
-#endif //COLORVISION_START_MARKINGDETECTOR_H
+#endif

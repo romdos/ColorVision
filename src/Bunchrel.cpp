@@ -2562,12 +2562,17 @@ CColorIntervalSelect::BunchClassification()
 		 delete[] intersecting_bunches;
 		 delete[] intersecting_type;
 		}
-//-----------------------------------------------------------------------------
-void
 
-CColorIntervalSelect::Strip_value_painting_bunch(int bunch, int beg_int,
-		int end_int, int bunch_signif, int* bunch_strip, int* number_of_bunch,
-		int* bunch_significance,int array_length)
+
+
+
+void CColorIntervalSelect::Strip_value_painting_bunch(int bunch, int beg_int,
+		int end_int,
+		int bunch_signif,
+		int* bunch_strip,
+		int* number_of_bunch,
+		int* bunch_significance,
+		int array_length)
 {
 	int paint_coun;
 	int current_inhabitant;
@@ -2580,30 +2585,28 @@ CColorIntervalSelect::Strip_value_painting_bunch(int bunch, int beg_int,
 	{
 		current_inhabitant = *(bunch_strip + paint_coun);
 		(*(number_of_bunch + paint_coun))++;
+
 		if(!current_inhabitant)
 		{
-			*(bunch_strip+paint_coun)=bunch+1;
-			*(bunch_significance+paint_coun)=bunch_signif;
+			*(bunch_strip + paint_coun) = bunch + 1;
+			*(bunch_significance + paint_coun) = bunch_signif;
 		}
 		else
 		{
-			val=*(bunch_significance+paint_coun);
+			val = *(bunch_significance+paint_coun);
 
-			if(val<bunch_signif)
+			if (val < bunch_signif)
 			{
-				*(bunch_strip+paint_coun)=bunch+1;
-				*(bunch_significance+paint_coun)=bunch_signif;
-
+				*(bunch_strip+paint_coun) = bunch + 1;
+				*(bunch_significance+paint_coun) = bunch_signif;
 			}
 		}
-
 	}
-
 }
-//-----------------------------------------------------------------------------
-int
 
-CColorIntervalSelect::Test_Junction(int bunch, int neighbor_bunch,
+
+
+int CColorIntervalSelect::Test_Junction(int bunch, int neighbor_bunch,
 		int occurrence)
 {
 	int bunch_mean_hue;

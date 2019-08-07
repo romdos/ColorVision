@@ -1,7 +1,7 @@
 /*
  * Contains segmentation function.
  *
- *
+ * todo: free memory!
  *
  */
 
@@ -31,8 +31,6 @@ static int gray_zones[NUM_INTEN1] = {0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 2,
 		2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 5,
 		5, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7};
 
-
-
 static int dev_mean[8] = {5, 8, 8, 10, 10, 10, 12, 8};
 static int imp_dev_mean[8] = {14, 16, 18, 18, 16, 16, 14, 12};
 
@@ -58,7 +56,7 @@ CImageProcess::CImageProcess()
     CurStrip = NULL;
 	GrayBunches = NULL;//08.02.17
 	ColorInt = NULL;
-
+    MarkingDescr = NULL;
 	IntegratedColorlessBackIntervals = NULL;
 	IntegratedColorBunchesCharacteristics = NULL;
 
@@ -67,6 +65,11 @@ CImageProcess::CImageProcess()
 	ColorSection = NULL;
 	SectionTraceLeft=NULL;
 	SectionTraceRight=NULL;
+
+    MarkingTraceLeft = NULL;
+    MarkingTraceRight = NULL;
+
+
 	ColorOfBasicBunches=NULL;//last_cor07.12.16
 	SkyGreenComponents=NULL;
 	SectionStraightSegments=NULL;
@@ -126,7 +129,7 @@ CImageProcess::CImageProcess()
 
 	Residual1 = 0;
 	Residual = 0;
-	NumStrips = STRIPS_NUMBER;
+	NumStrips = STRIPS_NUM;
 
 	left_shift1[0] = 3;
 	left_shift1[1] = 3;
@@ -292,7 +295,6 @@ CImageProcess::CImageProcess()
 
 
 
-
 CImageProcess::~CImageProcess()
 {
 	delete[] opponent_color_difference;
@@ -353,6 +355,19 @@ CImageProcess::~CImageProcess()
 	delete[] SectionTraceRight;
 	SectionTraceRight = NULL;
 	}
+
+    if (MarkingTraceLeft != NULL)//last_cor26.04.19
+    {
+        delete[] MarkingTraceLeft;
+        MarkingTraceLeft = NULL;
+    }
+    if (MarkingTraceRight != NULL)
+    {
+        delete[] MarkingTraceRight;
+        MarkingTraceRight = NULL;
+    }
+
+
 	if(SkyGreenComponents!=NULL)
 	{
 	delete[] SkyGreenComponents;//last_cor26.05.15
@@ -570,6 +585,18 @@ if(GreenFinding)
         }
 
     }//grf
+
+    if (MarkingDescr != NULL)
+    {
+        for (int zero_sec = 0; zero_sec<NUM_YELLOW_WHITE_MARKING; zero_sec++)
+        {
+            delete[] MarkingDescr[zero_sec].location_of_section;
+            MarkingDescr[zero_sec].location_of_section = NULL;
+        }
+        delete[] MarkingDescr;
+        MarkingDescr = NULL;
+    }
+
     DeleteTemporal();
 }
 
@@ -710,9 +737,14 @@ void CImageProcess::InitialConstructions()
 	}
 	ColorInt = new CColorIntervalSelect[NumStrips];
 	ColorDescrSect = new ColorSectionDescr[NUM_SECT1];
+    MarkingDescr = new ColorSectionDescr[NUM_YELLOW_WHITE_MARKING];
 	SectionTraceLeft = new int[MAX_COL_INT * NumStrips];
 	SectionTraceRight = new int[MAX_COL_INT * NumStrips];
-	SkyGreenComponents=new int[NUM_SECT1];//last_cor26.05.15
+
+    MarkingTraceLeft = new int[16*NumStrips];//last_cor26.04.19
+    MarkingTraceRight = new int[16*NumStrips];
+
+    SkyGreenComponents=new int[NUM_SECT1];//last_cor26.05.15
 	ColorSection = new CColorSection(NumStrips, ColorDescrSect, CurStrip,
 			ColorInt);
 
@@ -863,8 +895,6 @@ void CImageProcess::InitialConstructions()
 		CurStrip[i].import_begg = new int[NUM_INTEN1];
 		CurStrip[i].import_endg = new int[NUM_INTEN1];
 
-		CurStrip[i].IntAllInform = new TIntCharact[NUM_INTEN];
-		CurStrip[i].IntAllInformGray = new TIntCharactGray[NUM_INTEN1];
 
 		CurStrip[i].opponent_color_difference = opponent_color_difference;
 		CurStrip[i].invert_color_difference1 = invert_color_difference1;
@@ -889,7 +919,10 @@ void CImageProcess::InitialConstructions()
 		ColorInt[i].saturation_consistency = new int[3 * PressedLength];
 		ColorInt[i].painted_strip_colored = new int[PressedLength];
 		ColorInt[i].painted_numbers_colored = new int[PressedLength];
+        ColorInt[i].intensity_consistency = new int[PressedLength];//last_cor26.02.19
 		ColorInt[i].consistency_colored = new int[PressedLength];
+        ColorInt[i].painted_bunch_intensities = new int[PressedLength];//last_cor26.02.19
+        ColorInt[i].painted_numbers_intensities = new int[PressedLength];
 		ColorInt[i].painted_strip_colored_long = new int[StripLength];
 		ColorInt[i].painted_numbers_colored_long = new int[StripLength];
 		ColorInt[i].consistency_colored_long = new int[StripLength];
@@ -967,24 +1000,28 @@ void CImageProcess::InitialConstructions()
 	ColorSection->NumStrips=NumStrips;//last_cor14.11.16
 
 
-	for (int zero_sec = 0; zero_sec < NUM_SECT1; zero_sec++) {
+	for (int zero_sec = 0; zero_sec < NUM_SECT1; zero_sec++)
+	{
 		ColorDescrSect[zero_sec].location_of_section = new int[NumStrips];
 	}
+
+    for (int zero_sec = 0; zero_sec < NUM_YELLOW_WHITE_MARKING; zero_sec++)
+    {
+        MarkingDescr[zero_sec].location_of_section = new int[NumStrips];
+    }
 }
 
 
 
-/*
+/************************************************************************
  * @Description:
- *      Prepares all basic constructions (histograms, bunches etc.)
- *
+ *     Prepares all basic constructions (histograms, bunches etc.)
+ *-----------------------------------------------------------------------
  * @Parameters:
- *      @In:    frame -- image to be segmented,
- *              frame_count -- its number.
- * @Notes:
- */
-void CImageProcess::segment(cv::Mat& frame,
-                            size_t frame_count)
+ *    frame -- image to be segmented,
+ *    frameNumber -- its number.
+ ***********************************************************************/
+void CImageProcess::segmentation(cv::Mat& frame, uint16 frameNumber)
 {
 	RedNumberOfCurrentFrame = 0;
 
@@ -995,7 +1032,7 @@ void CImageProcess::segment(cv::Mat& frame,
 
 	if (LengthofMotionAnalysisInterval != 0)
 	{
-		RedNumberOfCurrentFrame = frame_count % LengthofMotionAnalysisInterval;
+		RedNumberOfCurrentFrame = frameNumber % LengthofMotionAnalysisInterval;
 	}
 
 	MaximumNumberOfCoveringElements = 0;
@@ -1033,22 +1070,52 @@ void CImageProcess::segment(cv::Mat& frame,
 		memset(CurStrip[i].thick_break_endg, (int) '\0', sizeof(int) * NUM_INTEN1);
 		memset(CurStrip[i].thick_prev_endg, (int) '\0', sizeof(int) * NUM_INTEN1);
 		memset(CurStrip[i].thick_lastg, (int) '\0', sizeof(int) * NUM_INTEN1);
+
 		memset(CurStrip[i].num_of_intg, (int) '\0', sizeof(int) * NUM_INTEN1);
+
 		memset(ColorInt[i].painted_strip_saturation, (int) '\0', sizeof(int) * (3 * PressedLength));
 		memset(ColorInt[i].painted_strip_colored, (int) '\0', sizeof(int) * (PressedLength));
 		memset(ColorInt[i].painted_strip_colored_long, (int) '\0', sizeof(int) * (StripLength));
 
+
+
+
+
 		CurStrip[i].Loc_stat_geom_double(GGBorGGR);
 
-		std::uint8_t bunch_max_length = 1 * StripWidth;
-        GrayBunches[i].find_bursts(bunch_max_length, 5);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+		std::uint8_t bunch_max_length = 3 * StripWidth;
+        GrayBunches[i].findBursts(bunch_max_length, 5);
 
 		if (VideoCameraIsLoaded)
 		{
 			ColorInt[i].ColoredIntervalsStructure = &IntegratedColorIntervals[i + RedNumberOfCurrentFrame * NumStrips];
 			ColorInt[i].ColorBunchesCharacteristics = &IntegratedColorBunchesCharacteristics[i + RedNumberOfCurrentFrame * NumStrips];
 
-			if (frame_count > 1)
+			if (frameNumber > 1)
 			{
 				memset(IntegratedColorBunchesCharacteristics[i + NumStrips * RedNumberOfCurrentFrame].length_of_trajectory,
 						(int) '\0', sizeof(int) * MAX_COL_INT);
@@ -1086,9 +1153,9 @@ void CImageProcess::segment(cv::Mat& frame,
 		IntegratedColorBunchesCharacteristics[i + NumStrips * RedNumberOfCurrentFrame].num_of_contrast_intervals = 0;
         //these characteristics should be refined in further investigations
 
-        if (frame_count >= 1)
+        if (frameNumber >= 1)
         {
-            RedNumberOfPreviousFrame = (frame_count - 1) % LengthofMotionAnalysisInterval;
+            RedNumberOfPreviousFrame = (frameNumber - 1) % LengthofMotionAnalysisInterval;
             ContrastBunchesMotion(i, ColorInt[i].bunches_occurred);
         }
 	}
@@ -1117,6 +1184,8 @@ void CImageProcess::segment(cv::Mat& frame,
     number_of_sections = ColorSection->Number_of_sections;
     number_of_section_left = ColorSection->Number_of_sections_left;
     number_of_section_right = ColorSection->Number_of_sections_right;
+    ColorSection->DescrMarking = MarkingDescr;
+
 
     if ((number_of_section_left > 0) && (number_of_section_right > 0))
     {
@@ -1152,56 +1221,8 @@ void CImageProcess::segment(cv::Mat& frame,
     detect_sky();
     detect_green();
 
-    memset(VerticalContrastCurves, (int) '\0', sizeof(int)*(768));
-    memset(VerticalLinesLength, (int) '\0', sizeof(int)*(32));
-    memset(VertLineFirstStrip, (int) '\0', sizeof(int)*(32));
-    memset(ConnectedVertLines, (int) '\0', sizeof(int)*(32));
-    memset(ConnectedVertLinesRight, (int) '\0', sizeof(int)*(32));
-    memset(ConnectedLeftBounVert, (int) '\0', sizeof(int)*(32));
-    memset(RightBounVert, (int) '\0', sizeof(int)*(32));
-    memset(FirstConnectedVertline, (int) '\0', sizeof(int)*(32));
-    memset(LastConnectedVertline, (int) '\0', sizeof(int)*(32));
-    memset(LeftClosestLine, (int) '\0', sizeof(int)*(32));
-    memset(UpperClosestLine, (int) '\0', sizeof(int)*(32));
-    memset(LowerClosestLine, (int) '\0', sizeof(int)*(32));
-    memset(LeftClosestLineIntersecting, (int) '\0', sizeof(int)*(32));//last_cor26.03.18
-    memset(RightClosestLine, (int) '\0', sizeof(int)*(32));
-    memset(RightClosestLineIntersecting, (int) '\0', sizeof(int)*(32));//last_cor26.03.18
-    memset(StripSignals, (int) '\0', sizeof(int)*(NumStrips));//last_cor30.10.17
-    memset(StripNewNumber, (int) '\0', sizeof(int)*(NumStrips));
-    memset(StripSignalsAdditional, (int) '\0', sizeof(int)*(NumStrips));
-    memset(StripNewNumberAdditional, (int) '\0', sizeof(int)*(NumStrips));
-
-
-    NumberOfVertLines = 0;
-    NumberOfVertLinesCloseToSignals = 0;
-    NumberOfVertLinesCloseToSignals1 = 0;
-
-    if (maximum_number_of_ordered_bunches > 0)
-    {
-        memset(SignalNumber,(int) '\0',sizeof(int)*(256));
-        memset(SignalNumberAdditional,(int) '\0',sizeof(int)*(256));
-
-
-
-        int success_find = FindSignalZones();
-
-        LineVertTrace = new int [maximum_number_of_ordered_bunches*NumStrips];
-
-        memset(LineVertTrace,(int) '\0',sizeof(int)*(maximum_number_of_ordered_bunches*NumStrips));
-
-        int vertical_success = VerticalLinesConstruct();
-
-        int vert_signal_connected = VerticalLinesSignalsConnected();
-
-        ConnectedVerticalLines();
-
-        int intersec_vert = IntersectingVerticalLines();
-
-        VerticalConnectedToBoundary();
-
-        int breaking_vert = BreakingVerticalLines();
-    }
+    //ColorSection->RoadMarkingSequences(0, MarkingTraceLeft, 0);
+    //ColorSection->RoadMarkingSequences(1, MarkingTraceRight, 0);
 }
 
 
@@ -1250,6 +1271,8 @@ void CImageProcess::detect_green()
     MaximumGreenComp(0);
 
     VerticalPartsofGreenBoundary();
+
+
 }
 
 
@@ -1393,7 +1416,6 @@ void CImageProcess::detect_sky()
             }
         }
     }
-
 }
 
 
@@ -1775,10 +1797,10 @@ int CImageProcess::ExtensionOfLeftContrast(int number_of_strip, int bunch_number
 	} //cycle1
 	K: return (prior);
 }
-//=====================================================
-int
 
-CImageProcess::ExtensionOfRightContrast(int number_of_strip, int bunch_number,
+
+
+int CImageProcess::ExtensionOfRightContrast(int number_of_strip, int bunch_number,
 		int bunch_beg, int bunch_end, int bunch_hue, int bunch_lower_hue,
 		int bunch_upper_hue, int bunch_gray, int bunch_lower_gray,
 		int bunch_upper_gray, int bunch_saturation, int bunch_lower_saturation,
@@ -14653,24 +14675,67 @@ CMotion::~CMotion(void) {
  *      Draws all found road marking lines.
  * @Parameters:
  *      img -- image, where road marking will be drawn,
- *      markings -- list, where from markings are extracted and drawn.
+ *      markings -- array of two markings.
  ********************************************************************************/
-void CImageProcess::draw_markings(cv::Mat& img, std::vector<Marking>& markings)
+void CImageProcess::drawMarkings(cv::Mat& img, const Marking markings[])
 {
     cv::Scalar color(40, 40, 250);     // color of line
     // thickness of line
     int thickness = 2;
 
-    for (auto& marking: markings)
+    for (int i = 0; i < 2; i++)
     {
-        for (auto& bunch: marking.bunches)
+        if (markings[i].isValid)
         {
-            float y = (STRIPS_NUMBER - bunch.stripNumber - 0.5) * StripWidth;
+            for (auto& bunch: markings[i].bunches)
+            {
+                float y = (STRIPS_NUM - bunch.stripNumber - 0.5) * StripWidth;
 
-            cv::Point begin(bunch.beg, y);
-            cv::Point end(bunch.end, y);
+                cv::Point begin(bunch.beg, y);
+                cv::Point end(bunch.end, y);
 
-            cv::line(img, begin, end, color, thickness);
+                cv::line(img, begin, end, color, thickness);
+            }
+        }
+    }
+}
+
+
+
+// Kiys results
+void CImageProcess::drawMarkingsTemp(cv::Mat& img, std::vector<Marking>& markings)
+{
+    // Color:            B      G       R
+    cv::Scalar color(40, 40, 250);
+
+    // thickness of line
+    int thick = 2;
+
+    for (uint8 sectNum = 0U; sectNum < NUM_YELLOW_WHITE_MARKING; sectNum++)
+    {
+        ColorSectionDescr marking = ColorSection->DescrMarking[sectNum];
+
+        for (uint16 stripNumber = marking.base_first;
+             stripNumber < marking.base_last;
+             stripNumber++)
+        {
+            uint8 num_bunch = marking.location_of_section[stripNumber];
+
+            if (num_bunch != 0U)
+            {
+                num_bunch--;
+
+                sint16 beg = ColorInt[stripNumber].ColoredIntervalsStructure->BegInterv[num_bunch];
+                sint16 end = ColorInt[stripNumber].ColoredIntervalsStructure->EndInterv[num_bunch];
+                printf("beg = %d\n", beg);
+                printf("end = %d\n", end);
+                float y = (STRIPS_NUM - stripNumber - 0.5) * StripWidth;
+
+                cv::Point beginPoint(beg, y);
+                cv::Point endPoint(end, y);
+
+                cv::line(img, beginPoint, endPoint, color, thick);
+            }
         }
     }
 }

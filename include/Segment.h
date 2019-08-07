@@ -1,5 +1,5 @@
 /*
- * Horizontal or vertical segment.
+ * Segment (common geometry object).
  *
  */
 

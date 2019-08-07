@@ -19,7 +19,9 @@ set(SOURCE_FILES
         src/SignalZones.cpp
         src/Segment.cpp
         src/Geometry.cpp
-        src/MarkingDetector.cpp)
+        src/MarkingDetector.cpp
+        src/RoadMarking.cpp
+        src/MarkingSignalParts.cpp)
 
 add_executable(ColorVision2 ${SOURCE_FILES})
 

@@ -1,8 +1,6 @@
 /*
- *  Starts a program. Opens video stream and calls a main segmentation function for each frame.
- *  Finds a road marking lines and pushes them to <markings> list.
- *  Draws results (markings).
- *  Records video with drawn results.
+ *  Opens a video stream.
+ *  Finds a road marking and pushes it to <markings> list.
  *
  *
  *
@@ -11,7 +9,6 @@
 
 
 #include "ImageProcess.h"
-
 
 
 
@@ -26,7 +23,7 @@ int main(int argc, char* argv[])
     cv::namedWindow("Source", cv::WINDOW_AUTOSIZE);
     cv::moveWindow("Source", 0, 0);
 
-    cv::VideoCapture cap("/home/roman/Pictures/caltech-lanes/cordova1/f%05d.png");
+    cv::VideoCapture cap(argv[1]);
     if (!cap.isOpened())
     {
         printf("Can't open video file.");
@@ -36,9 +33,11 @@ int main(int argc, char* argv[])
     cv::Size size(IMWIDTH, IMHEIGHT);
     cv::Mat frame; // todo: define as zeros with size and type
 
+    #if (ON == VIDEOWRITER)
     cv::VideoWriter videoWriter("/home/roman/Videos/Processed/processed_video.avi",
                                     cv::VideoWriter::fourcc('M', 'J', 'P', 'G'),
                                     30, size, true);
+
 
     if (!videoWriter.isOpened())
     {
@@ -46,7 +45,7 @@ int main(int argc, char* argv[])
         std::cin.get(); //wait for any key press
         return -1;
     }
-
+#endif
     CImageProcess vision;
     MarkingDetector detector;
 
@@ -60,22 +59,23 @@ int main(int argc, char* argv[])
 
         cv::resize(frame, frame, size);
 
-        vision.segment(frame, frameNumber);
-
-        std::vector<Marking> markings;
-
+        vision.segmentation(frame, frameNumber);
         detector.strips = vision.GrayBunches;
         std::cout << vision.LowerSkyFiber << std::endl;
-        detector.find(markings, vision.LowerSkyFiber);
 
-        vision.draw_markings(frame, markings);
+        std::cout << "Markings num: " << int(detector.find(vision.LowerSkyFiber)) << std::endl;
+        vision.drawMarkings(frame, detector.markings);
 
+#if (ON == VIDEOWRITER)
         videoWriter.write(frame);
-
+#endif
         cv::imshow("Source", frame);
         cv::waitKey(3);
     }
 
+#if (ON == VIDEOWRITER)
     videoWriter.release();
+#endif
+
 }
 
